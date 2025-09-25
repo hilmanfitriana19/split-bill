@@ -1,0 +1,128 @@
+/* Additional Costs styles */
+.additional-costs {
+  margin-top: 0;
+}
+
+.costs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .costs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cost-section {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.shipping-section {
+  border-left: 3px solid var(--accent-color);
+}
+
+.discount-section {
+  border-left: 3px solid #e74c3c;
+}
+
+.cost-section h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+}
+
+.cost-info {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+.cost-form .form-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cost-input {
+  flex-grow: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.update-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.update-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+.current-value {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Summary bill breakdown styles */
+.bill-breakdown {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.bill-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+
+.bill-row:not(:last-child) {
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.discount {
+  color: #e74c3c;
+}
+
+.shipping {
+  color: var(--accent-color);
+}
+
+.total {
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+/* Update individual breakdown */
+.person-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.amount-details {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.person-amount {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem;
+}
