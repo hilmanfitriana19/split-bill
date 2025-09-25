@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, otherCost, billDate, excludeNoOrder }) => {
+const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, otherCost, billDate, excludeNoOrder, taxMethod }) => {
   // Format currency in IDR
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', { 
@@ -46,8 +46,12 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
 
   // Calculate tax (percentage of subtotal after discount)
   const discountedSubtotal = subtotal - discount;
-  const taxAmount = tax > 0 ? (discountedSubtotal * tax / 100) : 0;
   const totalOtherCost = otherCost || 0;
+  let taxBase = discountedSubtotal;
+  if (taxMethod === 'after') {
+    taxBase += shippingCost + totalOtherCost;
+  }
+  const taxAmount = tax > 0 ? (taxBase * tax / 100) : 0;
 
   // Calculate individual discounts for each person
   const calculatePersonDiscounts = (rawAmounts, totalDiscount) => {

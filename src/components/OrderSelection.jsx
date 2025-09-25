@@ -70,55 +70,7 @@ const OrderSelection = ({ people, menuItems, orders, addOrder, removeOrder, acti
           <p>Please add people first</p>
         </div>
       ) : (
-        <>
-          <form onSubmit={handleSubmit} className="order-form">
-            <div className="form-group">
-              <label htmlFor="person-select">Person</label>
-              <select
-                id="person-select"
-                value={selectedPerson}
-                onChange={(e) => setSelectedPerson(e.target.value)}
-                required
-              >
-                <option value="">Select a person</option>
-                {people.map(person => (
-                  <option key={person.id} value={person.id}>{person.name}</option>
-                ))}
-              </select>
-            </div>
-            
-            {selectedPerson && (
-              <div className="order-selection">
-                <label>Select items ordered by {activePerson_name}:</label>
-                <div className="menu-item-grid">
-                  {menuItems.map((item) => (
-                    <div key={item.id} className="menu-item-card">
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={selectedItems.includes(item.id)}
-                          onChange={() => handleItemToggle(item.id)}
-                        />
-                        <span className="item-name">{item.name}</span>
-                        <span className="item-price">{formatCurrency(item.price)}</span>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-                
-                <button 
-                  type="submit"
-                  className="btn primary"
-                  disabled={selectedItems.length === 0}
-                >
-                  + Add to Order
-                </button>
-              </div>
-            )}
-          </form>
-          
-          <hr className="divider" />
-          
+        <> 
           <h3>Current Orders</h3>
           <div className="order-vertical-list">
             {people.map(person => (
@@ -129,6 +81,30 @@ const OrderSelection = ({ people, menuItems, orders, addOrder, removeOrder, acti
                     <span className="badge">{ordersByPerson[person.id].length}</span>
                   )}
                 </div>
+                {/* Menu list for this person */}
+                <div className="person-menu-list">
+                  {menuItems.length === 0 ? (
+                    <div className="message info"><p>No menu items available</p></div>
+                  ) : (
+                    <ul className="menu-list">
+                      {menuItems.map(item => (
+                        <li key={item.id} className="menu-list-item">
+                          <button
+                            className="btn small add"
+                            onClick={() => addOrder({
+                              id: uuidv4(),
+                              personId: person.id,
+                              items: [item.id]
+                            })}
+                          >
+                            <span className="plus-icon">+</span> {item.name}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {/* Current orders for this person */}
                 {ordersByPerson[person.id] && ordersByPerson[person.id].length > 0 ? (
                   <ul className="order-list">
                     {ordersByPerson[person.id].map(order => {

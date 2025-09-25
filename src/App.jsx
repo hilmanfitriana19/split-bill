@@ -26,7 +26,11 @@ function App() {
     return savedOrders ? JSON.parse(savedOrders) : [];
   });
   
-  // State for shipping cost, tax, discount, and other cost
+  // State for shipping cost, tax, discount, other cost, and tax method
+  const [taxMethod, setTaxMethod] = useState(() => {
+    const saved = localStorage.getItem('splitBillTaxMethod');
+    return saved || 'before';
+  });
   const [shippingCost, setShippingCost] = useState(() => {
     const savedShipping = localStorage.getItem('splitBillShipping');
     return savedShipping ? parseFloat(savedShipping) : 0;
@@ -97,6 +101,10 @@ function App() {
     localStorage.setItem('splitBillTax', tax.toString());
     showSaveIndicator();
   }, [tax]);
+  useEffect(() => {
+    localStorage.setItem('splitBillTaxMethod', taxMethod);
+    showSaveIndicator();
+  }, [taxMethod]);
   
   useEffect(() => {
     localStorage.setItem('splitBillDiscount', discount.toString());
@@ -311,6 +319,8 @@ function App() {
           <Tax 
             tax={tax}
             setTax={setTax}
+            taxMethod={taxMethod}
+            setTaxMethod={setTaxMethod}
           />
           <Discount 
             discount={discount}
@@ -338,6 +348,7 @@ function App() {
               otherCost={otherCost}
               billDate={billDate}
               excludeNoOrder={true}
+              taxMethod={taxMethod}
             />
           </div>
         </div>

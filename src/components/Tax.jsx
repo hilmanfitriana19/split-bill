@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const Tax = ({ tax, setTax }) => {
+const Tax = ({ tax, setTax, taxMethod, setTaxMethod }) => {
   // Update tax (percentage) directly when input changes
   const handleTaxChange = (valueString) => {
     let value = parseFloat(valueString) || 0;
@@ -29,6 +29,13 @@ const Tax = ({ tax, setTax }) => {
           />
           <span className="input-currency-prefix">%</span>
         </div>
+        <div style={{ marginTop: '1em' }}>
+          <label style={{ fontWeight: 500, marginRight: '1em' }}>Tax Calculation Method:</label>
+          <select value={taxMethod} onChange={e => setTaxMethod(e.target.value)}>
+            <option value="before">Before shipping & other costs (default)</option>
+            <option value="after">After shipping & other costs</option>
+          </select>
+        </div>
       </div>
     </div>
   );
@@ -37,6 +44,8 @@ const Tax = ({ tax, setTax }) => {
 Tax.propTypes = {
   tax: PropTypes.number.isRequired,
   setTax: PropTypes.func.isRequired,
+  taxMethod: PropTypes.string.isRequired,
+  setTaxMethod: PropTypes.func.isRequired,
 };
 
 export default Tax;
