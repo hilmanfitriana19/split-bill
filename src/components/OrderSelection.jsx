@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
 
-const OrderSelection = ({ people, menuItems, orders, addOrder, removeOrder, activePerson }) => {
+const OrderSelection = ({ people, menuItems, orders, addOrder, removeOrder, activePerson, restaurants, selectedRestaurant, setSelectedRestaurant }) => {
   const [selectedPerson, setSelectedPerson] = useState(activePerson || '');
   const [selectedItems, setSelectedItems] = useState([]);
 
@@ -12,6 +12,20 @@ const OrderSelection = ({ people, menuItems, orders, addOrder, removeOrder, acti
       setSelectedPerson(activePerson);
     }
   }, [activePerson]);
+
+  // When restaurant changes, reset orders to only include items from that restaurant
+  useEffect(() => {
+    if (!selectedRestaurant) return;
+    setSelectedItems(prevItems => prevItems.filter(itemId => {
+      const menuItem = menuItems.find(item => item.id === itemId);
+      return menuItem ? menuItem.restaurantId === selectedRestaurant : false;
+    }));
+  }, [selectedRestaurant, menuItems]);
+
+  // When restaurant changes, reset selected items (order detail selection)
+  useEffect(() => {
+    setSelectedItems([]);
+  }, [selectedRestaurant]);
 
   // Format currency in IDR
   const formatCurrency = (amount) => {
@@ -64,13 +78,27 @@ const OrderSelection = ({ people, menuItems, orders, addOrder, removeOrder, acti
   return (
     <div>
       <h2>Orders</h2>
-      
+      {restaurants.length > 0 && (
+        <div style={{ marginBottom: '1em' }}>
+          <label htmlFor="restaurant-select" style={{ fontWeight: 500, marginRight: 8 }}>Restaurant:</label>
+          <select
+            id="restaurant-select"
+            value={selectedRestaurant}
+            onChange={e => setSelectedRestaurant(e.target.value)}
+            style={{ padding: '0.3em 0.7em', borderRadius: 6 }}
+          >
+            {restaurants.map(r => (
+              <option key={r.id} value={r.id}>{r.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
       {people.length === 0 ? (
         <div className="message info">
           <p>Please add people first</p>
         </div>
       ) : (
-        <> 
+        <>
           <h3>Current Orders</h3>
           <div className="order-vertical-list">
             {people.map(person => (
@@ -83,11 +111,11 @@ const OrderSelection = ({ people, menuItems, orders, addOrder, removeOrder, acti
                 </div>
                 {/* Menu list for this person */}
                 <div className="person-menu-list">
-                  {menuItems.length === 0 ? (
+                  {menuItems.filter(item => item.restaurantId === selectedRestaurant).length === 0 ? (
                     <div className="message info"><p>No menu items available</p></div>
                   ) : (
                     <ul className="menu-list">
-                      {menuItems.map(item => (
+                      {menuItems.filter(item => item.restaurantId === selectedRestaurant).map(item => (
                         <li key={item.id} className="menu-list-item">
                           <button
                             className="btn small add"
@@ -105,34 +133,46 @@ const OrderSelection = ({ people, menuItems, orders, addOrder, removeOrder, acti
                   )}
                 </div>
                 {/* Current orders for this person */}
-                {ordersByPerson[person.id] && ordersByPerson[person.id].length > 0 ? (
+                {ordersByPerson[person.id] && ordersByPerson[person.id].filter(order =>
+                  order.items.some(itemId => {
+                    const menuItem = menuItems.find(item => item.id === itemId);
+                    return menuItem && menuItem.restaurantId === selectedRestaurant;
+                  })
+                ).length > 0 ? (
                   <ul className="order-list">
-                    {ordersByPerson[person.id].map(order => {
-                      const totalPrice = order.items.reduce((total, itemId) => {
-                        const menuItem = menuItems.find(item => item.id === itemId);
-                        return menuItem ? total + menuItem.price : total;
-                      }, 0);
-                      return (
-                        <li key={order.id} className="order-item">
-                          <div className="order-details">
-                            <p className="order-items">
-                              {order.items.map(itemId => {
-                                const menuItem = menuItems.find(item => item.id === itemId);
-                                return menuItem ? menuItem.name : '';
-                              }).filter(Boolean).join(', ')}
-                            </p>
-                            <p className="order-price">{formatCurrency(totalPrice)}</p>
-                          </div>
-                          <button 
-                            onClick={() => removeOrder(order.id)}
-                            className="btn-icon remove"
-                            aria-label="Remove order"
-                          >
-                            ×
-                          </button>
-                        </li>
-                      );
-                    })}
+                    {ordersByPerson[person.id]
+                      .map(order => {
+                        // Only show items from the selected restaurant
+                        const filteredItems = order.items.filter(itemId => {
+                          const menuItem = menuItems.find(item => item.id === itemId);
+                          return menuItem && menuItem.restaurantId === selectedRestaurant;
+                        });
+                        if (filteredItems.length === 0) return null;
+                        const totalPrice = filteredItems.reduce((total, itemId) => {
+                          const menuItem = menuItems.find(item => item.id === itemId);
+                          return menuItem ? total + menuItem.price : total;
+                        }, 0);
+                        return (
+                          <li key={order.id} className="order-item">
+                            <div className="order-details">
+                              <p className="order-items">
+                                {filteredItems.map(itemId => {
+                                  const menuItem = menuItems.find(item => item.id === itemId);
+                                  return menuItem ? menuItem.name : '';
+                                }).filter(Boolean).join(', ')}
+                              </p>
+                              <p className="order-price">{formatCurrency(totalPrice)}</p>
+                            </div>
+                            <button 
+                              onClick={() => removeOrder(order.id)}
+                              className="btn-icon remove"
+                              aria-label="Remove order"
+                            >
+                              ×
+                            </button>
+                          </li>
+                        );
+                      })}
                   </ul>
                 ) : (
                   <div className="message info">

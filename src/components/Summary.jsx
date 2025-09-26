@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, otherCost, billDate, excludeNoOrder, taxMethod }) => {
+const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, otherCost, billDate, excludeNoOrder, taxMethod, selectedRestaurant }) => {
   // Format currency in IDR
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', { 
@@ -16,9 +16,19 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
     ? `${billDate.slice(8, 10)}-${billDate.slice(5, 7)}-${billDate.slice(0, 4)}`
     : '';
 
+  // Filter orders and menuItems by selectedRestaurant
+  const filteredOrders = selectedRestaurant
+    ? orders.filter(order => order.items.some(itemId => {
+        const menuItem = menuItems.find(item => item.id === itemId);
+        return menuItem && menuItem.restaurantId === selectedRestaurant;
+      }))
+    : orders;
+  const filteredMenuItems = selectedRestaurant
+    ? menuItems.filter(item => item.restaurantId === selectedRestaurant)
+    : menuItems;
   // Filter people if excludeNoOrder is true
   const filteredPeople = excludeNoOrder
-    ? people.filter(person => orders.some(order => order.personId === person.id))
+    ? people.filter(person => filteredOrders.some(order => order.personId === person.id))
     : people;
 
   // Calculate what each person owes
@@ -30,13 +40,12 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
     }, {});
     
     // Calculate each person's total based on orders
-    orders.forEach(order => {
+    filteredOrders.forEach(order => {
       const personId = order.personId;
       const orderTotal = order.items.reduce((total, itemId) => {
-        const menuItem = menuItems.find(item => item.id === itemId);
+        const menuItem = filteredMenuItems.find(item => item.id === itemId);
         return menuItem ? total + menuItem.price : total;
       }, 0);
-      
       amounts[personId] = (amounts[personId] || 0) + orderTotal;
     });
     
@@ -109,12 +118,12 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
   
   // Get person's ordered items
   const getPersonItems = (personId) => {
-    const personOrders = orders.filter(order => order.personId === personId);
+    const personOrders = filteredOrders.filter(order => order.personId === personId);
     const itemsMap = new Map();
     
     personOrders.forEach(order => {
       order.items.forEach(itemId => {
-        const menuItem = menuItems.find(item => item.id === itemId);
+        const menuItem = filteredMenuItems.find(item => item.id === itemId);
         if (menuItem) {
           if (itemsMap.has(menuItem.id)) {
             itemsMap.set(menuItem.id, {
@@ -134,10 +143,28 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
     return Array.from(itemsMap.values());
   };
   
+  // Get selected restaurant name
+  let restaurantName = '';
+  if (selectedRestaurant && Array.isArray(menuItems) && menuItems.length > 0) {
+    const found = menuItems.find(item => item.restaurantId === selectedRestaurant);
+    if (found && found.restaurantId && found.restaurantName) {
+      restaurantName = found.restaurantName;
+    }
+  }
+  if (!restaurantName && typeof selectedRestaurant === 'string' && selectedRestaurant.length > 0 && typeof restaurants !== 'undefined') {
+    // Try to get from restaurants prop if available
+    const foundR = (restaurants || []).find(r => r.id === selectedRestaurant);
+    if (foundR) restaurantName = foundR.name;
+  }
+
   return (
     <div className="summary-section">
-      <h2>Summary</h2>
-      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5em' }}>
+        <div style={{ fontWeight: 600, fontSize: '1.1em', color: '#4338ca' }}>
+          {restaurantName && <span>Restaurant: {restaurantName}</span>}
+        </div>
+      </div>
+      <h2>Summary {restaurantName && <span>Restaurant: {restaurantName}</span>}</h2>
       <div className="card summary-card">
         <div className="card-header">
           <h3>Bill Summary</h3>
@@ -263,7 +290,8 @@ Summary.propTypes = {
   tax: PropTypes.number.isRequired,
   discount: PropTypes.number.isRequired,
   otherCost: PropTypes.number.isRequired,
-  excludeNoOrder: PropTypes.bool
+  excludeNoOrder: PropTypes.bool,
+  selectedRestaurant: PropTypes.string
 };
 
 export default Summary;

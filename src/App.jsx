@@ -16,6 +16,12 @@ function App() {
     return savedPeople ? JSON.parse(savedPeople) : [];
   });
   
+    // Restaurant management
+  const [restaurants, setRestaurants] = useState(() => {
+    const saved = localStorage.getItem('splitBillRestaurants');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [menuItems, setMenuItems] = useState(() => {
     const savedMenuItems = localStorage.getItem('splitBillMenuItems');
     return savedMenuItems ? JSON.parse(savedMenuItems) : [];
@@ -64,6 +70,9 @@ function App() {
   };
   const [billDate, setBillDate] = useState(getTodayString());
 
+  // State for selected restaurant (global)
+  const [selectedRestaurant, setSelectedRestaurant] = useState(restaurants[0]?.id || '');
+
   // Helper function to show save notification
   const showSaveIndicator = () => {
     // Simple console log for now - we'll implement a custom notification later
@@ -71,6 +80,11 @@ function App() {
   };
 
   // Save to localStorage whenever state changes
+
+  useEffect(() => {
+    localStorage.setItem('splitBillRestaurants', JSON.stringify(restaurants));
+  }, [restaurants]);
+
   useEffect(() => {
     localStorage.setItem('splitBillPeople', JSON.stringify(people));
     if (people.length > 0) {
@@ -151,6 +165,15 @@ function App() {
 
   const removeOrder = (id) => {
     setOrders(orders.filter(order => order.id !== id));
+  };
+
+  // Restaurant management
+  const addRestaurant = (name) => {
+    setRestaurants([...restaurants, { id: uuidv4(), name }]);
+  };
+
+  const removeRestaurant = (id) => {
+    setRestaurants(restaurants.filter(r => r.id !== id));
   };
 
   // Clear all data
@@ -259,6 +282,22 @@ function App() {
     reader.readAsText(file);
   };
 
+  // When selectedRestaurant changes, reset all orders
+  useEffect(() => {
+    if (!selectedRestaurant) return;
+    // Remove all orders that have items not in the selected restaurant
+    setOrders(prevOrders => prevOrders
+      .map(order => ({
+        ...order,
+        items: order.items.filter(itemId => {
+          const menuItem = menuItems.find(item => item.id === itemId);
+          return menuItem && menuItem.restaurantId === selectedRestaurant;
+        })
+      }))
+      .filter(order => order.items.length > 0)
+    );
+  }, [selectedRestaurant, menuItems]);
+
   return (
     <div className="app-container">
       <header>
@@ -296,6 +335,9 @@ function App() {
               menuItems={menuItems} 
               addMenuItem={addMenuItem} 
               removeMenuItem={removeMenuItem} 
+              restaurants={restaurants}
+              addRestaurant={addRestaurant}
+              removeRestaurant={removeRestaurant}
             />
           </div>
           
@@ -307,6 +349,9 @@ function App() {
               addOrder={addOrder}
               removeOrder={removeOrder}
               activePerson={activePerson}
+              restaurants={restaurants}
+              selectedRestaurant={selectedRestaurant}
+              setSelectedRestaurant={setSelectedRestaurant}
             />
           </div>
           
@@ -339,9 +384,9 @@ function App() {
               />
             </div>
             <Summary 
-              people={people} 
-              menuItems={menuItems} 
-              orders={orders} 
+              people={people}
+              menuItems={menuItems}
+              orders={orders}
               shippingCost={shippingCost}
               tax={tax}
               discount={discount}
@@ -349,6 +394,7 @@ function App() {
               billDate={billDate}
               excludeNoOrder={true}
               taxMethod={taxMethod}
+              selectedRestaurant={selectedRestaurant}
             />
           </div>
         </div>
