@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addRestaurant, removeRestaurant }) => {
   const [newItem, setNewItem] = useState({ name: '', price: '', restaurantId: '' });
   const [newRestaurant, setNewRestaurant] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // State for selected restaurant for menu management
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(restaurants.length > 0 ? restaurants[0].id : '');
@@ -13,7 +14,10 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
   const [showAddRestaurant, setShowAddRestaurant] = useState(false);
 
   // Filter menu items for selected restaurant
-  const filteredMenuItems = menuItems.filter(item => item.restaurantId === selectedRestaurantId);
+  const filteredMenuItems = menuItems
+    .filter(item => item.restaurantId === selectedRestaurantId)
+    .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   // Set default restaurantId when restaurants change and newItem.restaurantId is empty
   useEffect(() => {
@@ -83,7 +87,7 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
         marginBottom: '1rem'
       }}>Menu Items</h2>
       
-      {/* Restaurant select for menu item */}
+  {/* Restaurant select for menu item */}
       <div style={{ marginBottom: '1em', display: 'flex', gap: '1em', alignItems: 'flex-end' }}>
         <div style={{ flex: 1 }}>
           <label htmlFor="item-restaurant" style={{ fontSize: '0.875rem', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Restaurant</label>
@@ -103,16 +107,28 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
         <button
           type="button"
           onClick={() => setShowAddRestaurant(v => !v)}
-          style={{ padding: '0.5rem 1rem', background: '#EDF2F7', color: '#3182CE', border: '1px solid #3182CE', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 500 }}
+          style={{ background: '#EDF2F7', color: '#3182CE', border: '1px solid #3182CE', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 500 }}
         >
           {showAddRestaurant ? 'Cancel' : 'Add Restaurant'}
         </button>
       </div>
 
+      {/* Search/filter for menu items */}
+      <div style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+        <input
+          aria-label="Search menu items"
+          placeholder="Search items..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="menu-search"
+          style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.375rem' }}
+        />
+      </div>
+
       {/* Add Restaurant (optional, collapsible) */}
       {showAddRestaurant && (
-        <form onSubmit={handleAddRestaurant} style={{ marginBottom: '1em', display: 'flex', gap: '0.5em', alignItems: 'flex-end' }}>
-          <div style={{ flex: 2 }}>
+        <form onSubmit={handleAddRestaurant} style={{ marginBottom: '1em', alignItems: 'flex-end' }}>
+          <div>
             <label htmlFor="restaurant-name" style={{ fontSize: '0.875rem', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Add Restaurant</label>
             <input
               id="restaurant-name"
@@ -129,8 +145,8 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
       {/* Only show menu item form if a restaurant is selected */}
       {selectedRestaurantId && (
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'flex-end' }}>
-            <div style={{ flex: 2 }}>
+          <div style={{ gap: '1rem', marginBottom: '2rem', alignItems: 'flex-end' }}>
+            <div>
               <label htmlFor="item-name" style={{ fontSize: '0.875rem', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Item Name</label>
               <input
                 id="item-name"
@@ -140,7 +156,7 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
                 style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.375rem' }}
               />
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, marginBottom: '2rem' }}>
               <label htmlFor="item-price" style={{ fontSize: '0.875rem', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Price (Rp)</label>
               <input
                 id="item-price"
@@ -159,7 +175,7 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
               type="submit"
               aria-label="Add menu item"
               disabled={!newItem.name.trim() || !newItem.price}
-              style={{ padding: '0.5rem 1rem', backgroundColor: !newItem.name.trim() || !newItem.price ? '#CBD5E0' : '#3182CE', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: !newItem.name.trim() || !newItem.price ? 'not-allowed' : 'pointer' }}
+              style={{ padding: '0.5 rem 1rem', backgroundColor: !newItem.name.trim() || !newItem.price ? '#CBD5E0' : '#3182CE', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: !newItem.name.trim() || !newItem.price ? 'not-allowed' : 'pointer' }}
             >
               +
             </button>
@@ -168,32 +184,37 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
       )}
       
       {/* Table of menu items for selected restaurant */}
-      <div style={{ background: '#fff', borderRadius: '0.5rem', border: '1px solid #e2e8f0', marginTop: '1em', padding: '1em 0.5em' }}>
-        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '0.5em 1em' }}>Item</th>
-              <th style={{ textAlign: 'right', padding: '0.5em 1em' }}>Price</th>
-              <th style={{ width: 40 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredMenuItems.map((item, idx) => (
-              <tr key={item.id}>
-                <td style={{ padding: '0.5em 1em' }}>{item.name}</td>
-                <td style={{ textAlign: 'right', padding: '0.5em 1em' }}>{formatCurrency(item.price)}</td>
-                <td style={{ textAlign: 'center' }}>
-                  <button type="button" aria-label="Remove item" onClick={() => removeMenuItem(item.id)} style={{ background: 'none', border: 'none', color: '#e53e3e', fontSize: '1.25em', cursor: 'pointer' }}>×</button>
-                </td>
-              </tr>
-            ))}
-            {filteredMenuItems.length === 0 && (
-              <tr>
-                <td colSpan={3} style={{ textAlign: 'center', color: '#a0aec0', padding: '1em' }}>No menu items yet for this restaurant.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="menu-items-container" style={{ marginTop: '0.5rem' }}>
+        {filteredMenuItems.length > 0 ? (
+          <div>
+            <table className="menu-table" style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem' }}>Item</th>
+                  <th style={{ textAlign: 'right', padding: '0.5rem 0.75rem' }}>Price</th>
+                  <th style={{ width: 40 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMenuItems.map(item => {
+                  const rest = restaurants.find(r => r.id === item.restaurantId);
+                  const restName = rest ? rest.name : '';
+                  return (
+                    <tr key={item.id} className="menu-table-row">
+                      <td style={{ padding: '0.5rem 0.75rem' }}><strong>{item.name}</strong></td>
+                      <td style={{ textAlign: 'right', padding: '0.5rem 0.75rem' }}><span className="menu-item-price">{formatCurrency(item.price)}</span></td>
+                      <td style={{ textAlign: 'center', padding: '0.5rem 0.75rem' }}>
+                        <button type="button" aria-label="Remove item" onClick={() => removeMenuItem(item.id)} style={{ background: 'none', border: 'none', color: '#e53e3e', fontSize: '1.1em', cursor: 'pointer' }}>×</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', color: '#a0aec0', padding: '1em' }}>No menu items yet for this restaurant.</div>
+        )}
       </div>
     </div>
   );

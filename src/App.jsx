@@ -327,10 +327,8 @@ function App() {
             activePerson={activePerson}
             setActivePerson={setActivePerson}
           />
-        </aside>
-
-        <div className="content">
-          <div className="card">
+          {/* Menu manager moved under People for easier access */}
+          <div className="sidebar-menu" style={{ marginTop: '1rem' }}>
             <MenuManager 
               menuItems={menuItems} 
               addMenuItem={addMenuItem} 
@@ -340,7 +338,9 @@ function App() {
               removeRestaurant={removeRestaurant}
             />
           </div>
-          
+        </aside>
+
+        <div className="content">
           <div className="card">
             <OrderSelection
               people={people}
