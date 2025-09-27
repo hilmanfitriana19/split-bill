@@ -89,29 +89,57 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
       
   {/* Restaurant select for menu item */}
       <div style={{ marginBottom: '1em', display: 'flex', gap: '1em', alignItems: 'flex-end' }}>
-        <div style={{ flex: 1 }}>
-          <label htmlFor="item-restaurant" style={{ fontSize: '0.875rem', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Restaurant</label>
-          <select
-            id="item-restaurant"
-            value={selectedRestaurantId}
-            onChange={e => setSelectedRestaurantId(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.375rem' }}
-            required
-          >
-            {restaurants.length === 0 && <option value="" disabled>No restaurant</option>}
-            {restaurants.map(r => (
-              <option key={r.id} value={r.id}>{r.name}</option>
-            ))}
-          </select>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowAddRestaurant(v => !v)}
-          style={{ background: '#EDF2F7', color: '#3182CE', border: '1px solid #3182CE', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 500 }}
+      {/* Bagian Select Restaurant lebih besar */}
+      <div style={{ flex: 4 }}>
+        <label
+          htmlFor="item-restaurant"
+          style={{
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            display: 'block',
+            marginBottom: '0.25rem'
+          }}
         >
-          {showAddRestaurant ? 'Cancel' : 'Add Restaurant'}
-        </button>
+          Restaurant
+        </label>
+        <select
+          id="item-restaurant"
+          value={selectedRestaurantId}
+          onChange={e => setSelectedRestaurantId(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '0.5rem',
+            border: '1px solid #e2e8f0',
+            borderRadius: '0.375rem'
+          }}
+          required
+        >
+          {restaurants.length === 0 && <option value="" disabled>No restaurant</option>}
+          {restaurants.map(r => (
+            <option key={r.id} value={r.id}>{r.name}</option>
+          ))}
+        </select>
       </div>
+
+      {/* Button New Restaurant lebih kecil */}
+      <button
+        type="button"
+        onClick={() => setShowAddRestaurant(v => !v)}
+        style={{
+          flex: 1,
+          background: '#EDF2F7',
+          color: '#3182CE',
+          border: '1px solid #3182CE',
+          borderRadius: '0.375rem',
+          cursor: 'pointer',
+          fontWeight: 500,
+          padding: '0.5rem 0.75rem',
+          whiteSpace: 'nowrap' // biar nggak pecah ke bawah
+        }}
+      >
+        {showAddRestaurant ? 'Cancel' : 'New Restaurant'}
+      </button>
+    </div>
 
       {/* Search/filter for menu items */}
       <div style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
@@ -128,7 +156,7 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
       {/* Add Restaurant (optional, collapsible) */}
       {showAddRestaurant && (
         <form onSubmit={handleAddRestaurant} style={{ marginBottom: '1em', alignItems: 'flex-end' }}>
-          <div>
+          <div style={{ marginBottom: '1rem' }}>
             <label htmlFor="restaurant-name" style={{ fontSize: '0.875rem', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Add Restaurant</label>
             <input
               id="restaurant-name"
