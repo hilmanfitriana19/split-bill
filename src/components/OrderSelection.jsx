@@ -167,6 +167,31 @@ const OrderSelection = ({ people, menuItems, orders, addOrder, removeOrder, acti
                               onClick={() => removeOrder(order.id)}
                               className="btn-icon remove"
                               aria-label="Remove order"
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#dc2626',
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                width: '1.75rem',
+                                height: '1.75rem',
+                                borderRadius: '50%',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                opacity: 1,
+                                transition: 'background-color 0.2s, color 0.2s',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.backgroundColor = '#dc2626';
+                                e.target.style.color = 'white';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.backgroundColor = 'transparent';
+                                e.target.style.color = '#dc2626';
+                              }}
                             >
                               ×
                             </button>
