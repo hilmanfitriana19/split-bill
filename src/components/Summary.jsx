@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, otherCost, billDate, excludeNoOrder, taxMethod, selectedRestaurant, restaurants }) => {
+const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, otherCost, billDate, excludeNoOrder, taxMethod, selectedRestaurant, restaurants, saveOrderToHistory }) => {
   // Format currency in IDR
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', { 
@@ -152,9 +152,33 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
     }
   }
 
+  // Handle save order
+  const handleSaveOrder = () => {
+    const orderName = prompt('Enter a name for this order:', 
+      `${restaurantName || 'Order'} - ${dateString}`);
+    
+    if (orderName && orderName.trim()) {
+      const success = saveOrderToHistory(orderName.trim());
+      if (success) {
+        alert('Order saved to history successfully!');
+      }
+    }
+  };
+
   return (
     <div className="summary-section">
-      <h2>Summary Order{restaurantName ? ` ${restaurantName}` : ''}</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h2 style={{ margin: 0 }}>Summary Order{restaurantName ? ` ${restaurantName}` : ''}</h2>
+        {filteredPeople.length > 0 && totalBill > 0 && (
+          <button 
+            className="btn success" 
+            onClick={handleSaveOrder}
+            style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
+          >
+            💾 Save Order
+          </button>
+        )}
+      </div>
       <div className="card summary-card">
         <div className="card-header">
           <h3>Bill Summary</h3>
@@ -284,7 +308,8 @@ Summary.propTypes = {
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired
     })
-  ).isRequired
+  ).isRequired,
+  saveOrderToHistory: PropTypes.func.isRequired
 };
 
 export default Summary;

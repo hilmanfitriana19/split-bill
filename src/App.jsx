@@ -8,6 +8,7 @@ import AdditionalCosts from './components/AdditionalCosts'
 import Summary from './components/Summary'
 import Discount from './components/Discount'
 import Tax from './components/Tax'
+import OrderHistory from './components/OrderHistory'
 
 function App() {
   // Initialize state from localStorage if available, otherwise empty arrays
@@ -73,6 +74,12 @@ function App() {
   // State for selected restaurant (global)
   const [selectedRestaurant, setSelectedRestaurant] = useState(restaurants[0]?.id || '');
 
+  // Order history state
+  const [orderHistory, setOrderHistory] = useState(() => {
+    const savedHistory = localStorage.getItem('splitBillOrderHistory');
+    return savedHistory ? JSON.parse(savedHistory) : [];
+  });
+
   // Helper function to show save notification
   const showSaveIndicator = () => {
     // Simple console log for now - we'll implement a custom notification later
@@ -130,6 +137,10 @@ function App() {
     showSaveIndicator();
   }, [otherCost]);
 
+  useEffect(() => {
+    localStorage.setItem('splitBillOrderHistory', JSON.stringify(orderHistory));
+  }, [orderHistory]);
+
   // Person management
   const addPerson = (name) => {
     setPeople([...people, { id: uuidv4(), name }]);
@@ -176,23 +187,131 @@ function App() {
     setRestaurants(restaurants.filter(r => r.id !== id));
   };
 
+  // Save current order to history
+  const saveOrderToHistory = (orderName) => {
+    // Calculate summary data similar to Summary component
+    const filteredOrders = selectedRestaurant
+      ? orders.filter(order => order.items.some(itemId => {
+          const menuItem = menuItems.find(item => item.id === itemId);
+          return menuItem && menuItem.restaurantId === selectedRestaurant;
+        }))
+      : orders;
+    
+    const filteredMenuItems = selectedRestaurant
+      ? menuItems.filter(item => item.restaurantId === selectedRestaurant)
+      : menuItems;
+    
+    const filteredPeople = people.filter(person => 
+      filteredOrders.some(order => order.personId === person.id)
+    );
+
+    // Calculate amounts
+    const rawAmounts = filteredPeople.reduce((acc, person) => {
+      acc[person.id] = 0;
+      return acc;
+    }, {});
+    
+    filteredOrders.forEach(order => {
+      const orderTotal = order.items.reduce((total, itemId) => {
+        const menuItem = filteredMenuItems.find(item => item.id === itemId);
+        return menuItem ? total + menuItem.price : total;
+      }, 0);
+      rawAmounts[order.personId] = (rawAmounts[order.personId] || 0) + orderTotal;
+    });
+
+    const subtotal = Object.values(rawAmounts).reduce((sum, amount) => sum + amount, 0);
+    const discountedSubtotal = subtotal - discount;
+    const totalOtherCost = otherCost || 0;
+    let taxBase = discountedSubtotal;
+    if (taxMethod === 'after') {
+      taxBase += shippingCost + totalOtherCost;
+    }
+    const taxAmount = tax > 0 ? (taxBase * tax / 100) : 0;
+    const totalBill = discountedSubtotal + taxAmount + shippingCost + totalOtherCost;
+
+    // Calculate final amounts for each person
+    const finalAmounts = {};
+    const perPersonShipping = filteredPeople.length > 0 ? shippingCost / filteredPeople.length : 0;
+    const perPersonTax = filteredPeople.length > 0 ? taxAmount / filteredPeople.length : 0;
+    const perPersonOther = filteredPeople.length > 0 ? totalOtherCost / filteredPeople.length : 0;
+    
+    filteredPeople.forEach(person => {
+      const personSubtotal = rawAmounts[person.id] || 0;
+      const personDiscount = subtotal > 0 ? (personSubtotal / subtotal) * discount : 0;
+      finalAmounts[person.id] = personSubtotal - personDiscount + perPersonShipping + perPersonTax + perPersonOther;
+    });
+
+    // Get restaurant name
+    const restaurant = restaurants.find(r => r.id === selectedRestaurant);
+    const restaurantName = restaurant ? restaurant.name : '';
+
+    const historyOrder = {
+      id: uuidv4(),
+      name: orderName,
+      savedAt: new Date().toISOString().slice(0, 10),
+      billDate,
+      people: [...filteredPeople],
+      menuItems: [...filteredMenuItems],
+      orders: [...filteredOrders],
+      restaurants: [...restaurants],
+      selectedRestaurant,
+      restaurantName,
+      subtotal,
+      discount,
+      tax: taxAmount,
+      taxRate: tax,
+      taxMethod,
+      shippingCost,
+      otherCost: totalOtherCost,
+      totalBill,
+      finalAmounts
+    };
+
+    setOrderHistory(prev => [historyOrder, ...prev]);
+    return true;
+  };
+
+  // Load order from history
+  const loadHistoryOrder = (historyOrder) => {
+    setPeople(historyOrder.people);
+    setMenuItems(historyOrder.menuItems);
+    setOrders(historyOrder.orders);
+    setRestaurants(historyOrder.restaurants);
+    setSelectedRestaurant(historyOrder.selectedRestaurant || '');
+    setBillDate(historyOrder.billDate);
+    setDiscount(historyOrder.discount);
+    setTax(historyOrder.taxRate);
+    setTaxMethod(historyOrder.taxMethod || 'before');
+    setShippingCost(historyOrder.shippingCost);
+    setOtherCost(historyOrder.otherCost);
+  };
+
+  // Delete order from history
+  const deleteHistoryOrder = (orderId) => {
+    setOrderHistory(prev => prev.filter(order => order.id !== orderId));
+  };
+
   // Clear all data
   const clearAllData = () => {
     if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
       setPeople([]);
       setMenuItems([]);
       setOrders([]);
+      setRestaurants([]);
       setShippingCost(0);
       setTax(0);
       setDiscount(0);
       setOtherCost(0);
+      setOrderHistory([]);
       localStorage.removeItem('splitBillPeople');
       localStorage.removeItem('splitBillMenuItems');
       localStorage.removeItem('splitBillOrders');
+      localStorage.removeItem('splitBillRestaurants');
       localStorage.removeItem('splitBillShipping');
       localStorage.removeItem('splitBillTax');
       localStorage.removeItem('splitBillDiscount');
       localStorage.removeItem('splitBillOtherCost');
+      localStorage.removeItem('splitBillOrderHistory');
     }
   };
 
@@ -396,8 +515,15 @@ function App() {
               taxMethod={taxMethod}
               selectedRestaurant={selectedRestaurant}
               restaurants={restaurants}
+              saveOrderToHistory={saveOrderToHistory}
             />
           </div>
+          
+          <OrderHistory 
+            orderHistory={orderHistory}
+            loadHistoryOrder={loadHistoryOrder}
+            deleteHistoryOrder={deleteHistoryOrder}
+          />
         </div>
       </div>
       
