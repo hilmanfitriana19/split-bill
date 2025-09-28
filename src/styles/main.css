@@ -562,35 +562,6 @@ header {
   margin-right: 0.5rem;
 }
 
-.person-remove-btn {
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  font-size: 0.9rem;
-  font-weight: 600;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  flex-shrink: 0; /* biar tidak mengecilkan nama */
-}
-
-.person-remove-btn:hover {
-  background: #fecaca;
-  border-color: #f87171;
-  color: #b91c1c;
-  transform: scale(1.05);
-}
-
-.person-remove-btn:active {
-  transform: scale(0.95);
-}
-
-
 .btn-icon.remove:hover, .btn-icon.remove:focus {
   background: #e53e3e;
   color: #fff;

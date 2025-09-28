@@ -76,8 +76,8 @@ const PersonList = ({ people, addPerson, removePerson, activePerson, setActivePe
             removePerson(person.id);
           }}
           style={{
-            background: '#fee2e2',
-            border: '1px solid #fecaca',
+            background: 'none',
+            border: 'none',
             color: '#dc2626',
             fontSize: '0.875rem',
             fontWeight: 600,
