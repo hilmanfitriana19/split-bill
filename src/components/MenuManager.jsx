@@ -191,7 +191,7 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
       {selectedRestaurantId && !showAddRestaurant && (
         <form onSubmit={handleSubmit}>
           <div style={{ gap: '1rem', marginBottom: '2rem', alignItems: 'flex-end' }}>
-            <div>
+            <div style={{ marginBottom: '1rem' }}>
               <label htmlFor="item-name" style={{ fontSize: '0.875rem', fontWeight: '500', display: 'block', marginBottom: '0.25rem' }}>Item Name</label>
               <input
                 id="item-name"

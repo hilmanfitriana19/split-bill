@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, otherCost, billDate, excludeNoOrder, taxMethod, selectedRestaurant }) => {
+const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, otherCost, billDate, excludeNoOrder, taxMethod, selectedRestaurant, restaurants }) => {
   // Format currency in IDR
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', { 
@@ -145,26 +145,16 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
   
   // Get selected restaurant name
   let restaurantName = '';
-  if (selectedRestaurant && Array.isArray(menuItems) && menuItems.length > 0) {
-    const found = menuItems.find(item => item.restaurantId === selectedRestaurant);
-    if (found && found.restaurantId && found.restaurantName) {
-      restaurantName = found.restaurantName;
+  if (selectedRestaurant && Array.isArray(restaurants) && restaurants.length > 0) {
+    const foundRestaurant = restaurants.find(r => r.id === selectedRestaurant);
+    if (foundRestaurant) {
+      restaurantName = foundRestaurant.name;
     }
-  }
-  if (!restaurantName && typeof selectedRestaurant === 'string' && selectedRestaurant.length > 0 && typeof restaurants !== 'undefined') {
-    // Try to get from restaurants prop if available
-    const foundR = (restaurants || []).find(r => r.id === selectedRestaurant);
-    if (foundR) restaurantName = foundR.name;
   }
 
   return (
     <div className="summary-section">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5em' }}>
-        <div style={{ fontWeight: 600, fontSize: '1.1em', color: '#4338ca' }}>
-          {restaurantName && <span>Restaurant: {restaurantName}</span>}
-        </div>
-      </div>
-      <h2>Summary {restaurantName && <span>Restaurant: {restaurantName}</span>}</h2>
+      <h2>Summary Order{restaurantName ? ` ${restaurantName}` : ''}</h2>
       <div className="card summary-card">
         <div className="card-header">
           <h3>Bill Summary</h3>
@@ -208,9 +198,6 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
           </table>
         </div>
         <h3 style={{ marginTop: '2em', marginBottom: '0.5em', color: '#4338ca', fontWeight: 700 }}>Individual Breakdown</h3>
-        <div className="summary-date" style={{ textAlign: 'right', fontSize: '1em', color: '#555', marginBottom: '0.7em', fontWeight: 500 }}>
-          <span style={{ color: '#222', fontWeight: 600 }}>Bill Date:</span> {dateString}
-        </div>
         {filteredPeople.length > 0 ? (
           <div className="person-breakdown-table-wrapper">
             <table className="summary-table person-breakdown-table">
@@ -291,7 +278,13 @@ Summary.propTypes = {
   discount: PropTypes.number.isRequired,
   otherCost: PropTypes.number.isRequired,
   excludeNoOrder: PropTypes.bool,
-  selectedRestaurant: PropTypes.string
+  selectedRestaurant: PropTypes.string,
+  restaurants: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired
+    })
+  ).isRequired
 };
 
 export default Summary;

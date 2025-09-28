@@ -395,6 +395,7 @@ function App() {
               excludeNoOrder={true}
               taxMethod={taxMethod}
               selectedRestaurant={selectedRestaurant}
+              restaurants={restaurants}
             />
           </div>
         </div>
