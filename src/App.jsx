@@ -28,35 +28,17 @@ function App() {
     return savedMenuItems ? JSON.parse(savedMenuItems) : [];
   });
   
-  const [orders, setOrders] = useState(() => {
-    const savedOrders = localStorage.getItem('splitBillOrders');
-    return savedOrders ? JSON.parse(savedOrders) : [];
-  });
+  const [orders, setOrders] = useState([]);
   
   // State for shipping cost, tax, discount, other cost, and tax method
-  const [taxMethod, setTaxMethod] = useState(() => {
-    const saved = localStorage.getItem('splitBillTaxMethod');
-    return saved || 'before';
-  });
-  const [shippingCost, setShippingCost] = useState(() => {
-    const savedShipping = localStorage.getItem('splitBillShipping');
-    return savedShipping ? parseFloat(savedShipping) : 0;
-  });
+  const [taxMethod, setTaxMethod] = useState('percentage');
+  const [shippingCost, setShippingCost] = useState(0);
   
-  const [tax, setTax] = useState(() => {
-    const savedTax = localStorage.getItem('splitBillTax');
-    return savedTax ? parseFloat(savedTax) : 0;
-  });
+  const [tax, setTax] = useState(0);
   
-  const [discount, setDiscount] = useState(() => {
-    const savedDiscount = localStorage.getItem('splitBillDiscount');
-    return savedDiscount ? parseFloat(savedDiscount) : 0;
-  });
+  const [discount, setDiscount] = useState(0);
   
-  const [otherCost, setOtherCost] = useState(() => {
-    const savedOther = localStorage.getItem('splitBillOtherCost');
-    return savedOther ? parseFloat(savedOther) : 0;
-  });
+  const [otherCost, setOtherCost] = useState(0);
 
   // State for active person (single selection)
   const [activePerson, setActivePerson] = useState(null);
@@ -106,36 +88,16 @@ function App() {
     }
   }, [menuItems]);
   
-  useEffect(() => {
-    localStorage.setItem('splitBillOrders', JSON.stringify(orders));
-    if (orders.length > 0) {
-      showSaveIndicator();
-    }
-  }, [orders]);
+  // Orders are not persisted - they clear on page refresh
   
-  useEffect(() => {
-    localStorage.setItem('splitBillShipping', shippingCost.toString());
-    showSaveIndicator();
-  }, [shippingCost]);
+
   
-  useEffect(() => {
-    localStorage.setItem('splitBillTax', tax.toString());
-    showSaveIndicator();
-  }, [tax]);
-  useEffect(() => {
-    localStorage.setItem('splitBillTaxMethod', taxMethod);
-    showSaveIndicator();
-  }, [taxMethod]);
+
+
   
-  useEffect(() => {
-    localStorage.setItem('splitBillDiscount', discount.toString());
-    showSaveIndicator();
-  }, [discount]);
+
   
-  useEffect(() => {
-    localStorage.setItem('splitBillOtherCost', otherCost.toString());
-    showSaveIndicator();
-  }, [otherCost]);
+
 
   useEffect(() => {
     localStorage.setItem('splitBillOrderHistory', JSON.stringify(orderHistory));
@@ -291,6 +253,15 @@ function App() {
     setOrderHistory(prev => prev.filter(order => order.id !== orderId));
   };
 
+  // Edit order in history
+  const editHistoryOrder = (orderId, updatedData) => {
+    setOrderHistory(prev => prev.map(order => 
+      order.id === orderId 
+        ? { ...order, ...updatedData, savedAt: new Date().toISOString() }
+        : order
+    ));
+  };
+
   // Clear all data
   const clearAllData = () => {
     if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
@@ -305,7 +276,6 @@ function App() {
       setOrderHistory([]);
       localStorage.removeItem('splitBillPeople');
       localStorage.removeItem('splitBillMenuItems');
-      localStorage.removeItem('splitBillOrders');
       localStorage.removeItem('splitBillRestaurants');
       localStorage.removeItem('splitBillShipping');
       localStorage.removeItem('splitBillTax');
@@ -457,6 +427,16 @@ function App() {
               removeRestaurant={removeRestaurant}
             />
           </div>
+          
+          {/* Order History in sidebar */}
+          <div style={{ marginTop: '1rem' }}>
+            <OrderHistory 
+              orderHistory={orderHistory}
+              loadHistoryOrder={loadHistoryOrder}
+              deleteHistoryOrder={deleteHistoryOrder}
+              editHistoryOrder={editHistoryOrder}
+            />
+          </div>
         </aside>
 
         <div className="content">
@@ -518,12 +498,6 @@ function App() {
               saveOrderToHistory={saveOrderToHistory}
             />
           </div>
-          
-          <OrderHistory 
-            orderHistory={orderHistory}
-            loadHistoryOrder={loadHistoryOrder}
-            deleteHistoryOrder={deleteHistoryOrder}
-          />
         </div>
       </div>
       
