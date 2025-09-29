@@ -171,8 +171,8 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 style={{ margin: 0 }}>Summary Order{restaurantName ? ` ${restaurantName}` : ''}</h2>
         {filteredPeople.length > 0 && totalBill > 0 && (
-          <button 
-            className="btn success" 
+          <button
+            className="btn success"
             onClick={handleSaveOrder}
             style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
           >
@@ -227,53 +227,85 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
 
         <h3 style={{ marginTop: '2em', marginBottom: '0.5em', color: 'var(--primary)', fontWeight: 700 }}>Individual Breakdown</h3>
 
-        {filteredPeople.length > 0 ? (
-          <div className="person-breakdown-table-wrapper">
-            <table className="summary-table person-breakdown-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Items</th>
-                  <th>Subtotal</th>
-                  <th>Discount</th>
-                  <th>Tax</th>
-                  <th>Shipping</th>
-                  <th>Other</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPeople.map(person => {
-                  const personSubtotal = rawAmounts[person.id] || 0;
-                  const personDiscount = personDiscounts[person.id] || 0;
-                  const personShipping = personShippingCosts[person.id] || 0;
-                  const personTax = personTaxCosts[person.id] || 0;
-                  const personOther = personOtherCosts[person.id] || 0;
-                  const total = finalAmounts[person.id] || 0;
-                  const personItems = getPersonItems(person.id);
-                  return (
-                    <tr key={person.id}>
-                      <td>{person.name}</td>
-                      <td>{personItems.length > 0 ? personItems.map(item => (
-                        <div key={item.id} style={{ display: 'block' }}>{item.name}{item.quantity > 1 ? ` x${item.quantity}` : ''}</div>
-                      )) : '-'}</td>
-                      <td className="price-value">{formatCurrency(personSubtotal)}</td>
-                      <td className="price-value">{personDiscount > 0 ? `-${formatCurrency(personDiscount)}` : personDiscount < 0 ? formatCurrency(personDiscount) : '-'}</td>
-                      <td className="price-value">{personTax > 0 ? formatCurrency(personTax) : '-'}</td>
-                      <td className="price-value">{personShipping > 0 ? formatCurrency(personShipping) : '-'}</td>
-                      <td className="price-value">{personOther > 0 ? formatCurrency(personOther) : '-'}</td>
-                      <td className="price-value price-total amount-total">{formatCurrency(total)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        {filteredPeople.length > 0 && (
+          <div className="person-breakdown-wrapper">
+            <div className="person-breakdown-table-wrapper">
+              <table className="summary-table person-breakdown-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Items</th>
+                    <th>Subtotal</th>
+                    <th>Discount</th>
+                    <th>Tax</th>
+                    <th>Shipping</th>
+                    <th>Other</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPeople.map(person => {
+                    const personSubtotal = rawAmounts[person.id] || 0;
+                    const personDiscount = personDiscounts[person.id] || 0;
+                    const personShipping = personShippingCosts[person.id] || 0;
+                    const personTax = personTaxCosts[person.id] || 0;
+                    const personOther = personOtherCosts[person.id] || 0;
+                    const total = finalAmounts[person.id] || 0;
+                    const personItems = getPersonItems(person.id);
+                    return (
+                      <tr key={person.id}>
+                        <td>{person.name}</td>
+                        <td>{personItems.length > 0 ? personItems.map(item => (
+                          <div key={item.id} style={{ display: 'block' }}>{item.name}{item.quantity > 1 ? ` x${item.quantity}` : ''}</div>
+                        )) : '-'}</td>
+                        <td className="price-value">{formatCurrency(personSubtotal)}</td>
+                        <td className="price-value">{personDiscount > 0 ? `-${formatCurrency(personDiscount)}` : personDiscount < 0 ? formatCurrency(personDiscount) : '-'}</td>
+                        <td className="price-value">{personTax > 0 ? formatCurrency(personTax) : '-'}</td>
+                        <td className="price-value">{personShipping > 0 ? formatCurrency(personShipping) : '-'}</td>
+                        <td className="price-value">{personOther > 0 ? formatCurrency(personOther) : '-'}</td>
+                        <td className="price-value price-total amount-total">{formatCurrency(total)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        ) : (
-          <p className="empty-message">
-            Add people to see the breakdown
-          </p>
         )}
+
+        {filteredPeople.length === 0 && (
+          <p className="empty-message">Add people to see the breakdown</p>
+        )}
+
+        {/* Mobile: per-person card view (visible only at <=1000px via CSS) */}
+        <div className="person-cards">
+          {filteredPeople.map(person => {
+            const personSubtotal = rawAmounts[person.id] || 0;
+            const personDiscount = personDiscounts[person.id] || 0;
+            const personShipping = personShippingCosts[person.id] || 0;
+            const personTax = personTaxCosts[person.id] || 0;
+            const personOther = personOtherCosts[person.id] || 0;
+            const total = finalAmounts[person.id] || 0;
+            const items = getPersonItems(person.id);
+            return (
+              <div className="person-card" key={`card-${person.id}`}>
+                <div className="person-name">{person.name}</div>
+                <div className="item-list">
+                  {items.length > 0 ? items.map(i => (
+                    <div key={i.id}>{i.name}{i.quantity > 1 ? ` x${i.quantity}` : ''}</div>
+                  )) : <div className="small">-</div>}
+                </div>
+                <div className="card-row"><div className="label">Subtotal</div><div className="value">{formatCurrency(personSubtotal)}</div></div>
+                <div className="card-row"><div className="label">Discount</div><div className="value">{personDiscount > 0 ? `-${formatCurrency(personDiscount)}` : personDiscount < 0 ? formatCurrency(personDiscount) : '-'}</div></div>
+                <div className="card-row"><div className="label">Tax</div><div className="value">{personTax > 0 ? formatCurrency(personTax) : '-'}</div></div>
+                <div className="card-row"><div className="label">Shipping</div><div className="value">{personShipping > 0 ? formatCurrency(personShipping) : '-'}</div></div>
+                <div className="card-row"><div className="label">Other</div><div className="value">{personOther > 0 ? formatCurrency(personOther) : '-'}</div></div>
+                <div className="card-row"><div className="label">Total</div><div className="value amount-total">{formatCurrency(total)}</div></div>
+              </div>
+            )
+          })}
+        </div>
+
       </div>
     </div>
   );
@@ -305,6 +337,8 @@ Summary.propTypes = {
   discount: PropTypes.number.isRequired,
   otherCost: PropTypes.number.isRequired,
   excludeNoOrder: PropTypes.bool,
+  billDate: PropTypes.string.isRequired,
+  taxMethod: PropTypes.string,
   selectedRestaurant: PropTypes.string,
   restaurants: PropTypes.arrayOf(
     PropTypes.shape({

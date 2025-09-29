@@ -206,7 +206,7 @@ header {
   box-sizing: border-box;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1000px) {
   .main-content {
     flex-direction: row;
     align-items: flex-start;
@@ -241,7 +241,7 @@ header {
   letter-spacing: 0.5px;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1000px) {
   .sidebar {
     margin-right: 0;
     margin-bottom: 0;
@@ -639,7 +639,7 @@ header {
   gap: 1rem;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1000px) {
   .person-breakdown {
     grid-template-columns: repeat(2, 1fr);
   }

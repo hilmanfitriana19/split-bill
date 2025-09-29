@@ -31,7 +31,7 @@ body {
   box-sizing: border-box;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1000px) {
   #root {
     width: 100%;
     padding: 1rem;
@@ -172,11 +172,11 @@ body {
   margin: 0 auto;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1000px) {
   .main-content {
     grid-template-columns: 1fr;
   }
-  
+
   .sidebar {
     margin-bottom: 1rem;
   }

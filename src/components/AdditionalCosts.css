@@ -9,7 +9,7 @@
   gap: 1rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
   .costs-grid {
     grid-template-columns: 1fr;
   }
