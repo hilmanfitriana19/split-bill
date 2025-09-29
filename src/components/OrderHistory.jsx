@@ -163,23 +163,7 @@ const OrderHistory = ({ orderHistory, loadHistoryOrder, deleteHistoryOrder, edit
                     >
                       Load
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditOrder(historyOrder);
-                      }}
-                      style={{
-                        padding: '0.2rem 0.5rem',
-                        fontSize: '0.75rem',
-                        backgroundColor: '#28a745',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Edit
-                    </button>
+                    {/* Edit button removed per request */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
