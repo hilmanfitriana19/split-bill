@@ -438,6 +438,36 @@ function App() {
         </aside>
 
         <section className="content">
+          {/* Mobile inline sidebar: appears only on small screens via CSS. Uses native details/summary for accessible accordions */}
+          <div className="mobile-inline-sidebar">
+            <details className="accordion-card" open>
+              <summary>People</summary>
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <PersonList
+                  people={people}
+                  addPerson={addPerson}
+                  removePerson={removePerson}
+                  activePerson={activePerson}
+                  setActivePerson={setActivePerson}
+                />
+              </div>
+            </details>
+
+            <details className="accordion-card">
+              <summary>Menu Items</summary>
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <MenuManager
+                  menuItems={menuItems}
+                  addMenuItem={addMenuItem}
+                  removeMenuItem={removeMenuItem}
+                  restaurants={restaurants}
+                  addRestaurant={addRestaurant}
+                  removeRestaurant={removeRestaurant}
+                />
+              </div>
+            </details>
+          </div>
+
           <div className="card">
             <OrderSelection
               people={people}
@@ -479,7 +509,7 @@ function App() {
             </div>
           </div>
 
-          <div className="card" style={{ marginTop: 'var(--space-4)' }}>
+          <div className="card summary-card-mobile" style={{ marginTop: 'var(--space-4)' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '0.5em', gap: '8px' }}>
               <label htmlFor="bill-date" style={{ marginRight: '0.5em', fontWeight: 500 }}>Bill Date:</label>
               <input

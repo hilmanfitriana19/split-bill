@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { Save } from 'react-feather';
 
 const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, otherCost, billDate, excludeNoOrder, taxMethod, selectedRestaurant, restaurants, saveOrderToHistory }) => {
   // Format currency in IDR
@@ -175,20 +176,22 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
             onClick={handleSaveOrder}
             style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
           >
-            💾 Save Order
+            <Save size={14} style={{ marginRight: 8 }} />Save Order
           </button>
         )}
       </div>
+
       <div className="card summary-card">
         <div className="card-header">
           <h3>Bill Summary</h3>
         </div>
+
         <div className="card-body">
           <table className="summary-table summary-total">
             <tbody>
               <tr>
                 <td>Subtotal</td>
-                <td className="price-value">{formatCurrency(subtotal)}</td>
+                <td className="price-value amount">{formatCurrency(subtotal)}</td>
               </tr>
               {discount > 0 && (
                 <tr className="discount-row">
@@ -216,12 +219,14 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
               )}
               <tr>
                 <td>Total Bill</td>
-                <td className="price-value price-total">{formatCurrency(totalBill)}</td>
+                <td className="price-value price-total amount-total">{formatCurrency(totalBill)}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <h3 style={{ marginTop: '2em', marginBottom: '0.5em', color: '#4338ca', fontWeight: 700 }}>Individual Breakdown</h3>
+
+        <h3 style={{ marginTop: '2em', marginBottom: '0.5em', color: 'var(--primary)', fontWeight: 700 }}>Individual Breakdown</h3>
+
         {filteredPeople.length > 0 ? (
           <div className="person-breakdown-table-wrapper">
             <table className="summary-table person-breakdown-table">
@@ -239,7 +244,7 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
               </thead>
               <tbody>
                 {filteredPeople.map(person => {
-                  const subtotal = rawAmounts[person.id] || 0;
+                  const personSubtotal = rawAmounts[person.id] || 0;
                   const personDiscount = personDiscounts[person.id] || 0;
                   const personShipping = personShippingCosts[person.id] || 0;
                   const personTax = personTaxCosts[person.id] || 0;
@@ -250,16 +255,14 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
                     <tr key={person.id}>
                       <td>{person.name}</td>
                       <td>{personItems.length > 0 ? personItems.map(item => (
-  <div key={item.id} style={{ display: 'block' }}>
-    {item.name}{item.quantity > 1 ? ` x${item.quantity}` : ''}
-  </div>
-)) : '-'}</td>
-                      <td className="price-value">{formatCurrency(subtotal)}</td>
+                        <div key={item.id} style={{ display: 'block' }}>{item.name}{item.quantity > 1 ? ` x${item.quantity}` : ''}</div>
+                      )) : '-'}</td>
+                      <td className="price-value">{formatCurrency(personSubtotal)}</td>
                       <td className="price-value">{personDiscount > 0 ? `-${formatCurrency(personDiscount)}` : personDiscount < 0 ? formatCurrency(personDiscount) : '-'}</td>
                       <td className="price-value">{personTax > 0 ? formatCurrency(personTax) : '-'}</td>
                       <td className="price-value">{personShipping > 0 ? formatCurrency(personShipping) : '-'}</td>
                       <td className="price-value">{personOther > 0 ? formatCurrency(personOther) : '-'}</td>
-                      <td className="price-value price-total">{formatCurrency(total)}</td>
+                      <td className="price-value price-total amount-total">{formatCurrency(total)}</td>
                     </tr>
                   );
                 })}
