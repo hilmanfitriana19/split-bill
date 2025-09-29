@@ -168,8 +168,10 @@ textarea:focus {
 }
 
 .app-container {
-  min-height: 100vh;
+  min-height: 120vh; /* taller scroll area so UI feels longer */
   background: linear-gradient(to bottom right, #f0f4f8, #f6f2ff);
+  padding-top: 24px;
+  padding-bottom: 36px;
 }
 
 header {

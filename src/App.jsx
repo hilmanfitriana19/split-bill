@@ -388,49 +388,47 @@ function App() {
   }, [selectedRestaurant, menuItems]);
 
   return (
-    <div className="app-container">
-      <header>
-        <h1>Split Bill App</h1>
-        <p className="tagline">Split your bills with friends easily</p>
-        <div className="actions">
-          <button className="btn danger outline" onClick={clearAllData}>
-            Clear All Data
-          </button>
-          <button className="btn primary" onClick={exportData}>
-            Export Data
-          </button>
-          <label className="btn success">
-            Import Data
+    <div className="container app-container">
+      <header className="card app-header">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+          <h1 className="app-title">Split Bill App</h1>
+          <p className="small">Bagi tagihan dengan teman-teman dengan mudah</p>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '12px' }}>
+          <button className="btn btn-danger" onClick={clearAllData}>🗑 Hapus Semua Data</button>
+          <button className="btn" onClick={exportData}>📤 Export Data</button>
+          <label className="btn btn-success">
+            📥 Import Data
             <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
           </label>
         </div>
       </header>
 
-      <div className="main-content">
-        <aside className="sidebar">
+      <main className="grid-2" style={{ marginTop: 'var(--space-4)' }}>
+        <aside className="sidebar card">
           <h2 className="sidebar-title">People</h2>
-          <PersonList 
-            people={people} 
-            addPerson={addPerson} 
+          <PersonList
+            people={people}
+            addPerson={addPerson}
             removePerson={removePerson}
             activePerson={activePerson}
             setActivePerson={setActivePerson}
           />
-          {/* Menu manager moved under People for easier access */}
-          <div className="sidebar-menu" style={{ marginTop: '1rem' }}>
-            <MenuManager 
-              menuItems={menuItems} 
-              addMenuItem={addMenuItem} 
-              removeMenuItem={removeMenuItem} 
+
+          <div style={{ marginTop: 'var(--space-4)' }}>
+            <MenuManager
+              menuItems={menuItems}
+              addMenuItem={addMenuItem}
+              removeMenuItem={removeMenuItem}
               restaurants={restaurants}
               addRestaurant={addRestaurant}
               removeRestaurant={removeRestaurant}
             />
           </div>
-          
-          {/* Order History in sidebar */}
-          <div style={{ marginTop: '1rem' }}>
-            <OrderHistory 
+
+          <div style={{ marginTop: 'var(--space-4)' }}>
+            <OrderHistory
               orderHistory={orderHistory}
               loadHistoryOrder={loadHistoryOrder}
               deleteHistoryOrder={deleteHistoryOrder}
@@ -439,7 +437,7 @@ function App() {
           </div>
         </aside>
 
-        <div className="content">
+        <section className="content">
           <div className="card">
             <OrderSelection
               people={people}
@@ -453,36 +451,48 @@ function App() {
               setSelectedRestaurant={setSelectedRestaurant}
             />
           </div>
-          
-          <AdditionalCosts 
-            shippingCost={shippingCost}
-            otherCost={otherCost}
-            setShippingCost={setShippingCost}
-            setOtherCost={setOtherCost}
-          />
-          <Tax 
-            tax={tax}
-            setTax={setTax}
-            taxMethod={taxMethod}
-            setTaxMethod={setTaxMethod}
-          />
-          <Discount 
-            discount={discount}
-            setDiscount={setDiscount}
-          />
-          <div className="card">
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '0.5em' }}>
+
+          <div className="grid-container grid-3" style={{ marginTop: 'var(--space-4)', gap: 'var(--space-4)' }}>
+            <div className="card">
+              <AdditionalCosts
+                shippingCost={shippingCost}
+                otherCost={otherCost}
+                setShippingCost={setShippingCost}
+                setOtherCost={setOtherCost}
+              />
+            </div>
+
+            <div className="card">
+              <Tax
+                tax={tax}
+                setTax={setTax}
+                taxMethod={taxMethod}
+                setTaxMethod={setTaxMethod}
+              />
+            </div>
+
+            <div className="card">
+              <Discount
+                discount={discount}
+                setDiscount={setDiscount}
+              />
+            </div>
+          </div>
+
+          <div className="card" style={{ marginTop: 'var(--space-4)' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '0.5em', gap: '8px' }}>
               <label htmlFor="bill-date" style={{ marginRight: '0.5em', fontWeight: 500 }}>Bill Date:</label>
               <input
                 id="bill-date"
                 type="date"
                 value={billDate}
                 onChange={e => setBillDate(e.target.value)}
-                style={{ fontSize: '1em', padding: '0.2em 0.5em', borderRadius: '4px', border: '1px solid #ccc' }}
+                className="input"
                 max={getTodayString()}
+                style={{ width: '200px' }}
               />
             </div>
-            <Summary 
+            <Summary
               people={people}
               menuItems={menuItems}
               orders={orders}
@@ -498,10 +508,9 @@ function App() {
               saveOrderToHistory={saveOrderToHistory}
             />
           </div>
-        </div>
-      </div>
-      
-      {/* Notification element for save indicators */}
+        </section>
+      </main>
+
       <div id="notification" className="notification"></div>
     </div>
   );
