@@ -191,7 +191,7 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
             <tbody>
               <tr>
                 <td>Subtotal</td>
-                <td className="price-value amount">{formatCurrency(subtotal)}</td>
+                <td className="price-value">{formatCurrency(subtotal)}</td>
               </tr>
               {discount > 0 && (
                 <tr className="discount-row">

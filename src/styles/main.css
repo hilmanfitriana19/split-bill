@@ -274,7 +274,8 @@ header {
 }
 
 .card-body {
-  padding: 0.75rem 0;
+  margin: 0 auto;
+  width: 80%;
 }
 
 .notification {
