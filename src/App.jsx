@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import './App.css'
+import Auth from './components/Auth'
+import { auth, db, doc, getDoc, setDoc, updateDoc } from './firebase'
 import PersonList from './components/PersonList'
 import MenuManager from './components/MenuManager'
 import OrderSelection from './components/OrderSelection'
@@ -11,6 +13,32 @@ import Tax from './components/Tax'
 import OrderHistory from './components/OrderHistory'
 
 function App() {
+  // Authenticated user (null = not signed in)
+  const [user, setUser] = useState(null);
+
+  // Helper: save master data and history to Firestore under users/{uid}/data
+  const saveUserDataToFirestore = async (uid, payload) => {
+    try {
+      const ref = doc(db, 'users', uid);
+      await setDoc(ref, payload, { merge: true });
+      console.log('Saved user data to Firestore');
+    } catch (err) {
+      console.error('Error saving user data to Firestore', err);
+    }
+  };
+
+  // Helper: load user data from Firestore
+  const loadUserDataFromFirestore = async (uid) => {
+    try {
+      const ref = doc(db, 'users', uid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return null;
+      return snap.data();
+    } catch (err) {
+      console.error('Error loading user data from Firestore', err);
+      return null;
+    }
+  };
   // Initialize state from localStorage if available, otherwise empty arrays
   const [people, setPeople] = useState(() => {
     const savedPeople = localStorage.getItem('splitBillPeople');
@@ -68,23 +96,58 @@ function App() {
     console.log('Data saved to local storage');
   };
 
+  // Called when Auth component notifies of user change
+  const handleUserChange = async (u) => {
+    setUser(u);
+    if (u && u.uid) {
+      // Try to load existing firestore data
+      const remote = await loadUserDataFromFirestore(u.uid);
+      if (remote) {
+        // Overwrite local state with remote data
+        if (remote.people) setPeople(remote.people);
+        if (remote.menuItems) setMenuItems(remote.menuItems);
+        if (remote.restaurants) setRestaurants(remote.restaurants);
+        if (remote.orderHistory) setOrderHistory(remote.orderHistory);
+        console.log('Loaded user data from Firestore');
+      } else {
+        // No remote doc — migrate from localStorage to Firestore
+        const payload = {
+          people,
+          menuItems,
+          restaurants,
+          orderHistory
+        };
+        await saveUserDataToFirestore(u.uid, payload);
+        console.log('Migrated local data to Firestore for new user');
+      }
+    }
+  };
+
   // Save to localStorage whenever state changes
 
   useEffect(() => {
-    localStorage.setItem('splitBillRestaurants', JSON.stringify(restaurants));
+    if (user && user.uid) {
+      saveUserDataToFirestore(user.uid, { restaurants });
+    } else {
+      localStorage.setItem('splitBillRestaurants', JSON.stringify(restaurants));
+    }
   }, [restaurants]);
 
   useEffect(() => {
-    localStorage.setItem('splitBillPeople', JSON.stringify(people));
-    if (people.length > 0) {
-      showSaveIndicator();
+    if (user && user.uid) {
+      saveUserDataToFirestore(user.uid, { people });
+    } else {
+      localStorage.setItem('splitBillPeople', JSON.stringify(people));
+      if (people.length > 0) showSaveIndicator();
     }
   }, [people]);
 
   useEffect(() => {
-    localStorage.setItem('splitBillMenuItems', JSON.stringify(menuItems));
-    if (menuItems.length > 0) {
-      showSaveIndicator();
+    if (user && user.uid) {
+      saveUserDataToFirestore(user.uid, { menuItems });
+    } else {
+      localStorage.setItem('splitBillMenuItems', JSON.stringify(menuItems));
+      if (menuItems.length > 0) showSaveIndicator();
     }
   }, [menuItems]);
   
@@ -100,7 +163,11 @@ function App() {
 
 
   useEffect(() => {
-    localStorage.setItem('splitBillOrderHistory', JSON.stringify(orderHistory));
+    if (user && user.uid) {
+      saveUserDataToFirestore(user.uid, { orderHistory });
+    } else {
+      localStorage.setItem('splitBillOrderHistory', JSON.stringify(orderHistory));
+    }
   }, [orderHistory]);
 
   // Person management
@@ -402,6 +469,10 @@ function App() {
             📥 Import Data
             <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
           </label>
+        </div>
+
+        <div style={{ position: 'absolute', right: 18, top: 18 }}>
+          <Auth onUserChange={handleUserChange} />
         </div>
       </header>
 
