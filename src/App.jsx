@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import './App.css'
 import Auth from './components/Auth'
@@ -15,6 +15,9 @@ import OrderHistory from './components/OrderHistory'
 function App() {
   // Authenticated user (null = not signed in)
   const [user, setUser] = useState(null);
+  const applyingRemoteRef = useRef(false);
+  const lastUserUidRef = useRef(null);
+  const handleInFlightRef = useRef(false);
 
   // Helper: save master data and history to Firestore under users/{uid}/data
   const saveUserDataToFirestore = async (uid, payload) => {
@@ -89,6 +92,8 @@ function App() {
     const savedHistory = localStorage.getItem('splitBillOrderHistory');
     return savedHistory ? JSON.parse(savedHistory) : [];
   });
+  const lastSavedRef = useRef('');
+  const [globalProcessing, setGlobalProcessing] = useState(false);
 
   // Helper function to show save notification
   const showSaveIndicator = () => {
@@ -98,8 +103,17 @@ function App() {
 
   // Called when Auth component notifies of user change
   const handleUserChange = async (u) => {
-    setUser(u);
+    // Avoid re-processing repeated identical auth callbacks
+    if (u && u.uid && lastUserUidRef.current === u.uid) return;
+    // serialize concurrent calls
+    if (handleInFlightRef.current) return;
+    handleInFlightRef.current = true;
+
     if (u && u.uid) {
+      lastUserUidRef.current = u.uid;
+      // Prevent persistence effects from reacting to the upcoming user change
+      applyingRemoteRef.current = true;
+
       // Try to load existing firestore data
       const remote = await loadUserDataFromFirestore(u.uid);
       if (remote) {
@@ -109,6 +123,34 @@ function App() {
         if (remote.restaurants) setRestaurants(remote.restaurants);
         if (remote.orderHistory) setOrderHistory(remote.orderHistory);
         console.log('Loaded user data from Firestore');
+        // Mark last-saved snapshot so persistence effect doesn't re-save the same payload
+        try {
+          lastSavedRef.current = JSON.stringify({
+            people: remote.people || [],
+            menuItems: remote.menuItems || [],
+            restaurants: remote.restaurants || [],
+            orderHistory: remote.orderHistory || []
+          });
+        } catch (e) {
+          // ignore serialization errors
+        }
+        // Apply the user object after remote data is applied
+        setUser(u);
+        // Save/update user profile info in Firestore
+        try {
+          await setDoc(doc(db, 'users', u.uid), {
+            profile: {
+              displayName: u.displayName || null,
+              email: u.email || null,
+              photoURL: u.photoURL || null,
+              lastSeen: new Date().toISOString()
+            }
+          }, { merge: true });
+        } catch (err) {
+          console.error('Error saving user profile to Firestore', err);
+        }
+        // Give React a tick to apply state updates, then clear the applying flag
+        setTimeout(() => { applyingRemoteRef.current = false; }, 100);
       } else {
         // No remote doc — migrate from localStorage to Firestore
         const payload = {
@@ -119,37 +161,73 @@ function App() {
         };
         await saveUserDataToFirestore(u.uid, payload);
         console.log('Migrated local data to Firestore for new user');
+        try {
+          lastSavedRef.current = JSON.stringify(payload);
+        } catch (e) {}
+        setUser(u);
+        setTimeout(() => { applyingRemoteRef.current = false; }, 100);
+        // Save basic user profile on first migration as well
+        try {
+          await setDoc(doc(db, 'users', u.uid), {
+            profile: {
+              displayName: u.displayName || null,
+              email: u.email || null,
+              photoURL: u.photoURL || null,
+              lastSeen: new Date().toISOString()
+            }
+          }, { merge: true });
+        } catch (err) {
+          console.error('Error saving user profile to Firestore', err);
+        }
       }
+    } else {
+      // user is null (signed out)
+      lastUserUidRef.current = null;
+      setUser(null);
     }
+    handleInFlightRef.current = false;
   };
 
-  // Save to localStorage whenever state changes
+  // Consolidated persistence: debounce and batch saves for master data + history.
+  // Skip saves when applyingRemoteRef is set to avoid echoing remote loads.
+  const saveTimeoutRef = useRef(null);
 
   useEffect(() => {
-    if (user && user.uid) {
-      saveUserDataToFirestore(user.uid, { restaurants });
-    } else {
-      localStorage.setItem('splitBillRestaurants', JSON.stringify(restaurants));
-    }
-  }, [restaurants]);
+    if (applyingRemoteRef.current) return;
 
-  useEffect(() => {
-    if (user && user.uid) {
-      saveUserDataToFirestore(user.uid, { people });
-    } else {
-      localStorage.setItem('splitBillPeople', JSON.stringify(people));
-      if (people.length > 0) showSaveIndicator();
-    }
-  }, [people]);
+    const payload = { restaurants, people, menuItems, orderHistory };
+    const payloadStr = JSON.stringify(payload);
 
-  useEffect(() => {
-    if (user && user.uid) {
-      saveUserDataToFirestore(user.uid, { menuItems });
-    } else {
-      localStorage.setItem('splitBillMenuItems', JSON.stringify(menuItems));
-      if (menuItems.length > 0) showSaveIndicator();
-    }
-  }, [menuItems]);
+    if (lastSavedRef.current === payloadStr) return;
+
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (user && user.uid) {
+        try {
+          await saveUserDataToFirestore(user.uid, payload);
+          lastSavedRef.current = payloadStr;
+        } catch (err) {
+          console.error('Error saving batched user data to Firestore', err);
+        }
+      } else {
+        localStorage.setItem('splitBillRestaurants', JSON.stringify(restaurants));
+        localStorage.setItem('splitBillPeople', JSON.stringify(people));
+        localStorage.setItem('splitBillMenuItems', JSON.stringify(menuItems));
+        localStorage.setItem('splitBillOrderHistory', JSON.stringify(orderHistory));
+        if (people.length > 0 || menuItems.length > 0) showSaveIndicator();
+        lastSavedRef.current = payloadStr;
+      }
+      saveTimeoutRef.current = null;
+    }, 600);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+    };
+  }, [restaurants, people, menuItems, orderHistory, user]);
   
   // Orders are not persisted - they clear on page refresh
   
@@ -162,13 +240,7 @@ function App() {
   
 
 
-  useEffect(() => {
-    if (user && user.uid) {
-      saveUserDataToFirestore(user.uid, { orderHistory });
-    } else {
-      localStorage.setItem('splitBillOrderHistory', JSON.stringify(orderHistory));
-    }
-  }, [orderHistory]);
+  // orderHistory persistence is handled by the consolidated persistence effect above
 
   // Person management
   const addPerson = (name) => {
@@ -472,9 +544,15 @@ function App() {
         </div>
 
         <div style={{ position: 'absolute', right: 18, top: 18 }}>
-          <Auth onUserChange={handleUserChange} />
+            <Auth onUserChange={handleUserChange} onProcessing={setGlobalProcessing} />
         </div>
       </header>
+
+        {globalProcessing && (
+          <div className="overlay-spinner" aria-hidden="true">
+            <div className="spinner" />
+          </div>
+        )}
 
       <main className="grid-2" style={{ marginTop: 'var(--space-4)' }}>
         <aside className="sidebar card">
