@@ -1,0 +1,61 @@
+# Node
+/node_modules/
+
+# Vite / build
+/dist/
+/build/
+/.vite/
+
+# Firebase local cache
+/.firebase/
+
+# Environment files (ignore real secrets). Keep the example in repo.
+.env
+.env.local
+.env.*.local
+!.env.xexample
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# IDEs
+/.vscode/
+/.idea/
+
+# macOS
+.DS_Store
+
+# Coverage
+/coverage/
+
+# Misc
+.cache/
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+.
