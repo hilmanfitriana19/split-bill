@@ -142,9 +142,9 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
         onClick={() => setShowAddRestaurant(v => !v)}
         style={{
           flex: 1,
-          background: '#EDF2F7',
-          color: '#3182CE',
-          border: '1px solid #3182CE',
+          background: 'rgba(102,187,106,0.12)',
+          color: 'var(--primary)',
+          border: '1px solid var(--primary)',
           borderRadius: '0.375rem',
           cursor: 'pointer',
           fontWeight: 500,
@@ -183,7 +183,7 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
               style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.375rem' }}
             />
           </div>
-          <button type="submit" style={{ padding: '0.5rem 1rem', backgroundColor: '#3182CE', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Add</button>
+          <button type="submit" style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Add</button>
         </form>
       )}
 
@@ -220,7 +220,7 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
               type="submit"
               aria-label="Add menu item"
               disabled={!newItem.name.trim() || !newItem.price}
-              style={{ padding: '0.5 rem 1rem', backgroundColor: !newItem.name.trim() || !newItem.price ? '#CBD5E0' : '#3182CE', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: !newItem.name.trim() || !newItem.price ? 'not-allowed' : 'pointer' }}
+              style={{ padding: '0.5 rem 1rem', backgroundColor: !newItem.name.trim() || !newItem.price ? 'var(--surface-high)' : 'var(--primary)', color: '#fff', border: 'none', borderRadius: '0.375rem', opacity: !newItem.name.trim() || !newItem.price ? 0.4 : 1, cursor: !newItem.name.trim() || !newItem.price ? 'not-allowed' : 'pointer' }}
             >
               +
             </button>

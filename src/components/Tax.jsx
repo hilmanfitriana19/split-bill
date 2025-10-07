@@ -11,7 +11,7 @@ const Tax = ({ tax, setTax, taxMethod, setTaxMethod }) => {
 
   return (
     <div className="card">
-      <h2 className="section-title" style={{ color: '#2563eb', marginBottom: '1rem' }}>Tax</h2>
+  <h2 className="section-title" style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Tax</h2>
       <div className="tax-group">
         <label htmlFor="tax" className="additional-costs-label">Tax (%)</label>
         <span className="additional-costs-desc">Tax is calculated as a percentage of subtotal and divided equally</span>

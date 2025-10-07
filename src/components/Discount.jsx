@@ -9,7 +9,7 @@ const Discount = ({ discount, setDiscount }) => {
 
   return (
     <div className="card">
-      <h2 className="section-title" style={{ color: '#2563eb', marginBottom: '1rem' }}>Discount</h2>
+  <h2 className="section-title" style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Discount</h2>
       <div className="discount-group">
         <label htmlFor="discount" className="additional-costs-label">Discount</label>
         <span className="additional-costs-desc">Discount is applied proportionally based on order totals</span>

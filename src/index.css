@@ -4,8 +4,10 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Root accent color switched to primary green as requested */
+  color: var(--primary, #66BB6A);
+  /* Themed background (light: soft mint, dark: deep green) */
+  background: var(--bg, #121A17);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,20 +17,27 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  color: var(--primary, #66BB6A);
+  text-decoration: none;
+  transition: color 160ms var(--easing-standard, ease);
 }
-a:hover {
-  color: #535bf2;
+a:hover, a:focus-visible {
+  color: var(--primary-600, #388E3C);
+  text-decoration: underline;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--bg, #121A17);
+  /* Body text switched to primary green as requested */
+  color: var(--primary, #66BB6A);
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Utility to restore standard readable text color inside sections if needed */
+.text-normal { color: var(--text, #E6F3EC); }
 
 h1 {
   font-size: 3.2em;
@@ -47,7 +56,7 @@ button {
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: var(--primary, #66BB6A);
 }
 button:focus,
 button:focus-visible {
@@ -56,11 +65,11 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: var(--primary, #388E3C);
+    background: var(--bg, #F0FDF4);
   }
   a:hover {
-    color: #747bff;
+    color: var(--primary-600, #388E3C);
   }
   button {
     background-color: #f9f9f9;

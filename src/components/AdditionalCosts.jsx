@@ -17,7 +17,7 @@ const AdditionalCosts = ({ shippingCost, otherCost, setShippingCost, setOtherCos
   return (
     <div>
       <div className="card">
-        <h2 className="section-title" style={{ color: '#2563eb', marginBottom: '1rem' }}>Additional Costs</h2>
+  <h2 className="section-title" style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Additional Costs</h2>
         <div className="additional-costs-grid">
           <div className="additional-costs-group">
             <label htmlFor="shipping-cost" className="additional-costs-label">Shipping Cost</label>
