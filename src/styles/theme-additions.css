@@ -1,0 +1,58 @@
+/* Theme-specific additions for green color scheme */
+
+/* Theme accent utilities */
+.bg-primary-soft { 
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.bg-success-soft { 
+  background-color: color-mix(in srgb, var(--success) 12%, transparent);
+}
+
+.text-success { 
+  color: var(--success);
+}
+
+.border-success { 
+  border-color: var(--success);
+}
+
+/* Enhanced button styles */
+.btn.primary {
+  background-color: var(--primary);
+  color: var(--surface);
+}
+
+.btn.primary:hover {
+  background-color: var(--primary-600);
+}
+
+.btn.ghost-soft {
+  background-color: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: var(--primary);
+}
+
+.btn.ghost-soft:hover {
+  background-color: color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+/* Card enhancements */
+.card {
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+/* Success states */
+.success-badge {
+  background-color: var(--success);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+}

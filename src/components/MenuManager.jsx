@@ -47,6 +47,8 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
       const newRestaurant = restaurants.find(r => r.name === pendingRestaurantName);
       if (newRestaurant) {
         setSelectedRestaurantId(newRestaurant.id);
+        // Also update newItem.restaurantId to the new restaurant
+        setNewItem(item => ({ ...item, restaurantId: newRestaurant.id }));
         setPendingRestaurantName(''); // Clear the pending name
       }
     }
@@ -61,7 +63,8 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
         price: parseFloat(newItem.price),
         restaurantId: newItem.restaurantId
       });
-      setNewItem({ name: '', price: '', restaurantId: restaurants[0]?.id || '' });
+      // Keep the same restaurantId for the next item instead of resetting to first restaurant
+      setNewItem({ name: '', price: '', restaurantId: selectedRestaurantId });
     }
   };
 

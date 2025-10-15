@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import './App.css'
 import Auth from './components/Auth'
+import { useTheme } from './components/ThemeProvider'
+import ThemeToggle from './components/ThemeToggle'
 import { auth, db, doc, getDoc, setDoc, updateDoc } from './firebase'
 import PersonList from './components/PersonList'
 import MenuManager from './components/MenuManager'
@@ -544,7 +546,10 @@ function App() {
         </div>
 
         <div style={{ position: 'absolute', right: 18, top: 18 }}>
-            <Auth onUserChange={handleUserChange} onProcessing={setGlobalProcessing} />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <ThemeToggle />
+              <Auth onUserChange={handleUserChange} onProcessing={setGlobalProcessing} />
+            </div>
         </div>
       </header>
 
