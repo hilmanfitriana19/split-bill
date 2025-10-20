@@ -291,7 +291,26 @@ function App() {
   };
 
   const removeRestaurant = (id) => {
+    // Remove the restaurant
     setRestaurants(restaurants.filter(r => r.id !== id));
+    
+    // Remove all menu items associated with this restaurant
+    setMenuItems(menuItems.filter(item => item.restaurantId !== id));
+    
+    // Remove all orders that contain items from this restaurant
+    setOrders(orders.map(order => ({
+      ...order,
+      items: order.items.filter(itemId => {
+        const menuItem = menuItems.find(item => item.id === itemId);
+        return menuItem ? menuItem.restaurantId !== id : false;
+      })
+    })).filter(order => order.items.length > 0)); // Remove orders with no items left
+    
+    // If the deleted restaurant was selected, reset to first available restaurant or empty
+    if (selectedRestaurant === id) {
+      const remainingRestaurants = restaurants.filter(r => r.id !== id);
+      setSelectedRestaurant(remainingRestaurants.length > 0 ? remainingRestaurants[0].id : '');
+    }
   };
 
   // Save current order to history

@@ -106,58 +106,144 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
       }}>Menu Items</h2>
       
   {/* Restaurant select for menu item */}
-      <div style={{ marginBottom: '1em', display: 'flex', gap: '1em', alignItems: 'flex-end' }}>
-      {/* Bagian Select Restaurant lebih besar */}
-      <div style={{ flex: 4 }}>
-        <label
-          htmlFor="item-restaurant"
-          style={{
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            display: 'block',
-            marginBottom: '0.25rem'
-          }}
-        >
-          Restaurant
-        </label>
-        <select
-          id="item-restaurant"
-          value={selectedRestaurantId}
-          onChange={e => setSelectedRestaurantId(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '0.5rem',
-            border: '1px solid #e2e8f0',
-            borderRadius: '0.375rem'
-          }}
-          required
-        >
-          {restaurants.length === 0 && <option value="" disabled>No restaurant</option>}
-          {restaurants.map(r => (
-            <option key={r.id} value={r.id}>{r.name}</option>
-          ))}
-        </select>
-      </div>
+      <div style={{ marginBottom: '1em' }}>
+        <div style={{ display: 'flex', gap: '1em', alignItems: 'flex-end', marginBottom: '0.5rem' }}>
+          {/* Bagian Label Restaurant */}
+          <div style={{ flex: 4 }}>
+            <label
+              htmlFor="item-restaurant"
+              style={{
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                display: 'block',
+                marginBottom: '0.25rem'
+              }}
+            >
+              Restaurant
+            </label>
+          </div>
 
-      {/* Button New Restaurant lebih kecil */}
-      <button
-        type="button"
-        onClick={() => setShowAddRestaurant(v => !v)}
-        style={{
-          flex: 1,
-          background: 'rgba(102,187,106,0.12)',
-          color: 'var(--primary)',
-          border: '1px solid var(--primary)',
-          borderRadius: '0.375rem',
-          cursor: 'pointer',
-          fontWeight: 500,
-          padding: '0.5rem 0.75rem',
-          whiteSpace: 'nowrap' // biar nggak pecah ke bawah
-        }}
-      >
-        {showAddRestaurant ? 'Cancel' : 'New Restaurant'}
-      </button>
-    </div>
+          {/* Button New Restaurant lebih kecil */}
+          <button
+            type="button"
+            onClick={() => setShowAddRestaurant(v => !v)}
+            style={{
+              flex: 1,
+              background: 'rgba(102,187,106,0.12)',
+              color: 'var(--primary)',
+              border: '1px solid var(--primary)',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              fontWeight: 500,
+              padding: '0.5rem 0.75rem',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {showAddRestaurant ? 'Cancel' : 'New Restaurant'}
+          </button>
+        </div>
+
+        {/* Restaurant List with Delete Icons */}
+        {restaurants.length > 0 && !showAddRestaurant && (
+          <div style={{
+            border: '1px solid #e2e8f0',
+            borderRadius: '0.375rem',
+            backgroundColor: 'white',
+            maxHeight: '200px',
+            overflowY: 'auto'
+          }}>
+            {restaurants.map(restaurant => (
+              <div
+                key={restaurant.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.75rem',
+                  borderBottom: '1px solid #f1f5f9',
+                  backgroundColor: selectedRestaurantId === restaurant.id ? 'rgba(34, 197, 94, 0.1)' : 'transparent',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s ease'
+                }}
+                onClick={() => setSelectedRestaurantId(restaurant.id)}
+                onMouseEnter={(e) => {
+                  if (selectedRestaurantId !== restaurant.id) {
+                    e.target.style.backgroundColor = '#f8fafc';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedRestaurantId !== restaurant.id) {
+                    e.target.style.backgroundColor = 'transparent';
+                  }
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      border: `2px solid ${selectedRestaurantId === restaurant.id ? 'var(--primary, #16a34a)' : '#d1d5db'}`,
+                      backgroundColor: selectedRestaurantId === restaurant.id ? 'var(--primary, #16a34a)' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    {selectedRestaurantId === restaurant.id && (
+                      <div style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        backgroundColor: 'white'
+                      }} />
+                    )}
+                  </div>
+                  <span style={{
+                    fontWeight: selectedRestaurantId === restaurant.id ? 600 : 400,
+                    color: selectedRestaurantId === restaurant.id ? 'var(--primary, #16a34a)' : '#374151'
+                  }}>
+                    {restaurant.name}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(`Are you sure you want to delete "${restaurant.name}" restaurant? This will also remove all menu items associated with this restaurant.`)) {
+                      removeRestaurant(restaurant.id);
+                    }
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#dc2626',
+                    fontSize: '1.2em',
+                    cursor: 'pointer',
+                    padding: '0.25rem',
+                    borderRadius: '0.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '28px',
+                    height: '28px',
+                    transition: 'background-color 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                  }}
+                  title={`Delete ${restaurant.name}`}
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Search/filter for menu items */}
       {!showAddRestaurant && (
@@ -188,6 +274,26 @@ const MenuManager = ({ menuItems, addMenuItem, removeMenuItem, restaurants, addR
           </div>
           <button type="submit" style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Add</button>
         </form>
+      )}
+      
+      {/* Show message when no restaurants exist */}
+      {restaurants.length === 0 && !showAddRestaurant && (
+        <div style={{ 
+          textAlign: 'center', 
+          color: '#6b7280', 
+          padding: '2rem 1rem',
+          backgroundColor: '#f9fafb',
+          borderRadius: '0.5rem',
+          border: '2px dashed #d1d5db',
+          marginTop: '1rem'
+        }}>
+          <p style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: '500' }}>
+            🍽️ No restaurants yet
+          </p>
+          <p style={{ margin: 0, fontSize: '0.875rem' }}>
+            Click "New Restaurant" to add your first restaurant and start adding menu items.
+          </p>
+        </div>
       )}
 
       {/* Only show menu item form if a restaurant is selected and not adding restaurant */}
@@ -279,7 +385,15 @@ MenuManager.propTypes = {
     })
   ).isRequired,
   addMenuItem: PropTypes.func.isRequired,
-  removeMenuItem: PropTypes.func.isRequired
+  removeMenuItem: PropTypes.func.isRequired,
+  restaurants: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired
+    })
+  ).isRequired,
+  addRestaurant: PropTypes.func.isRequired,
+  removeRestaurant: PropTypes.func.isRequired
 };
 
 export default MenuManager;
