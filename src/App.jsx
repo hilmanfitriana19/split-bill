@@ -66,12 +66,16 @@ function App() {
   // State for shipping cost, tax, discount, other cost, and tax method
   const [taxMethod, setTaxMethod] = useState('percentage');
   const [shippingCost, setShippingCost] = useState(0);
+  const [shippingDistribution, setShippingDistribution] = useState('equal'); // 'equal' or 'proportional'
   
   const [tax, setTax] = useState(0);
+  const [taxDistribution, setTaxDistribution] = useState('equal'); // 'equal' or 'proportional'
   
   const [discount, setDiscount] = useState(0);
+  const [discountDistribution, setDiscountDistribution] = useState('proportional'); // 'equal' or 'proportional'
   
   const [otherCost, setOtherCost] = useState(0);
+  const [otherCostDistribution, setOtherCostDistribution] = useState('equal'); // 'equal' or 'proportional'
 
   // State for active person (single selection)
   const [activePerson, setActivePerson] = useState(null);
@@ -334,14 +338,47 @@ function App() {
 
     // Calculate final amounts for each person
     const finalAmounts = {};
-    const perPersonShipping = filteredPeople.length > 0 ? shippingCost / filteredPeople.length : 0;
-    const perPersonTax = filteredPeople.length > 0 ? taxAmount / filteredPeople.length : 0;
-    const perPersonOther = filteredPeople.length > 0 ? totalOtherCost / filteredPeople.length : 0;
+    
+    // Calculate shipping cost per person based on distribution method
+    const getPersonShippingCost = (personSubtotal) => {
+      if (shippingDistribution === 'proportional' && subtotal > 0) {
+        return (personSubtotal / subtotal) * shippingCost;
+      }
+      return filteredPeople.length > 0 ? shippingCost / filteredPeople.length : 0;
+    };
+    
+    // Calculate other cost per person based on distribution method
+    const getPersonOtherCost = (personSubtotal) => {
+      if (otherCostDistribution === 'proportional' && subtotal > 0) {
+        return (personSubtotal / subtotal) * totalOtherCost;
+      }
+      return filteredPeople.length > 0 ? totalOtherCost / filteredPeople.length : 0;
+    };
+    
+    // Calculate tax per person based on distribution method
+    const getPersonTax = (personSubtotal) => {
+      if (taxDistribution === 'proportional' && subtotal > 0) {
+        return (personSubtotal / subtotal) * taxAmount;
+      }
+      return filteredPeople.length > 0 ? taxAmount / filteredPeople.length : 0;
+    };
+    
+    // Calculate discount per person based on distribution method
+    const getPersonDiscount = (personSubtotal) => {
+      if (discountDistribution === 'proportional' && subtotal > 0) {
+        return (personSubtotal / subtotal) * discount;
+      }
+      return filteredPeople.length > 0 ? discount / filteredPeople.length : 0;
+    };
     
     filteredPeople.forEach(person => {
       const personSubtotal = rawAmounts[person.id] || 0;
-      const personDiscount = subtotal > 0 ? (personSubtotal / subtotal) * discount : 0;
-      finalAmounts[person.id] = personSubtotal - personDiscount + perPersonShipping + perPersonTax + perPersonOther;
+      const personDiscount = getPersonDiscount(personSubtotal);
+      const personShipping = getPersonShippingCost(personSubtotal);
+      const personOther = getPersonOtherCost(personSubtotal);
+      const personTax = getPersonTax(personSubtotal);
+      
+      finalAmounts[person.id] = personSubtotal - personDiscount + personShipping + personTax + personOther;
     });
 
     // Get restaurant name
@@ -361,11 +398,15 @@ function App() {
       restaurantName,
       subtotal,
       discount,
+      discountDistribution,
       tax: taxAmount,
       taxRate: tax,
       taxMethod,
+      taxDistribution,
       shippingCost,
+      shippingDistribution,
       otherCost: totalOtherCost,
+      otherCostDistribution,
       totalBill,
       finalAmounts
     };
@@ -383,10 +424,14 @@ function App() {
     setSelectedRestaurant(historyOrder.selectedRestaurant || '');
     setBillDate(historyOrder.billDate);
     setDiscount(historyOrder.discount);
+    setDiscountDistribution(historyOrder.discountDistribution || 'proportional');
     setTax(historyOrder.taxRate);
     setTaxMethod(historyOrder.taxMethod || 'before');
+    setTaxDistribution(historyOrder.taxDistribution || 'equal');
     setShippingCost(historyOrder.shippingCost);
+    setShippingDistribution(historyOrder.shippingDistribution || 'equal');
     setOtherCost(historyOrder.otherCost);
+    setOtherCostDistribution(historyOrder.otherCostDistribution || 'equal');
   };
 
   // Delete order from history
@@ -411,9 +456,13 @@ function App() {
       setOrders([]);
       setRestaurants([]);
       setShippingCost(0);
+      setShippingDistribution('equal');
       setTax(0);
+      setTaxDistribution('equal');
       setDiscount(0);
+      setDiscountDistribution('proportional');
       setOtherCost(0);
+      setOtherCostDistribution('equal');
       setOrderHistory([]);
       localStorage.removeItem('splitBillPeople');
       localStorage.removeItem('splitBillMenuItems');
@@ -643,6 +692,10 @@ function App() {
                 otherCost={otherCost}
                 setShippingCost={setShippingCost}
                 setOtherCost={setOtherCost}
+                shippingDistribution={shippingDistribution}
+                setShippingDistribution={setShippingDistribution}
+                otherCostDistribution={otherCostDistribution}
+                setOtherCostDistribution={setOtherCostDistribution}
               />
             </div>
 
@@ -652,6 +705,8 @@ function App() {
                 setTax={setTax}
                 taxMethod={taxMethod}
                 setTaxMethod={setTaxMethod}
+                taxDistribution={taxDistribution}
+                setTaxDistribution={setTaxDistribution}
               />
             </div>
 
@@ -659,6 +714,8 @@ function App() {
               <Discount
                 discount={discount}
                 setDiscount={setDiscount}
+                discountDistribution={discountDistribution}
+                setDiscountDistribution={setDiscountDistribution}
               />
             </div>
           </div>
@@ -687,6 +744,10 @@ function App() {
               billDate={billDate}
               excludeNoOrder={true}
               taxMethod={taxMethod}
+              shippingDistribution={shippingDistribution}
+              taxDistribution={taxDistribution}
+              discountDistribution={discountDistribution}
+              otherCostDistribution={otherCostDistribution}
               selectedRestaurant={selectedRestaurant}
               restaurants={restaurants}
               saveOrderToHistory={saveOrderToHistory}

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const Tax = ({ tax, setTax, taxMethod, setTaxMethod }) => {
+const Tax = ({ tax, setTax, taxMethod, setTaxMethod, taxDistribution, setTaxDistribution }) => {
   // Update tax (percentage) directly when input changes
   const handleTaxChange = (valueString) => {
     let value = parseFloat(valueString) || 0;
@@ -14,7 +14,30 @@ const Tax = ({ tax, setTax, taxMethod, setTaxMethod }) => {
   <h2 className="section-title" style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Tax</h2>
       <div className="tax-group">
         <label htmlFor="tax" className="additional-costs-label">Tax (%)</label>
-        <span className="additional-costs-desc">Tax is calculated as a percentage of subtotal and divided equally</span>
+        <div className="distribution-options" style={{ marginBottom: '0.75rem' }}>
+          <div className="radio-group">
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="tax-distribution"
+                value="equal"
+                checked={taxDistribution === 'equal'}
+                onChange={(e) => setTaxDistribution(e.target.value)}
+              />
+              <span>Split equally among all people</span>
+            </label>
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="tax-distribution"
+                value="proportional"
+                checked={taxDistribution === 'proportional'}
+                onChange={(e) => setTaxDistribution(e.target.value)}
+              />
+              <span>Split proportionally based on order value</span>
+            </label>
+          </div>
+        </div>
         <div className="input-currency-row">
           <input
             id="tax"
@@ -30,8 +53,8 @@ const Tax = ({ tax, setTax, taxMethod, setTaxMethod }) => {
           <span className="input-currency-prefix">%</span>
         </div>
         <div style={{ marginTop: '1em' }}>
-          <label style={{ fontWeight: 500, marginRight: '1em' }}>Tax Calculation Method:</label>
-          <select value={taxMethod} onChange={e => setTaxMethod(e.target.value)}>
+          <label htmlFor="tax-method" style={{ fontWeight: 500, marginRight: '1em' }}>Tax Calculation Method:</label>
+          <select id="tax-method" value={taxMethod} onChange={e => setTaxMethod(e.target.value)}>
             <option value="before">Before shipping & other costs (default)</option>
             <option value="after">After shipping & other costs</option>
           </select>
@@ -46,6 +69,8 @@ Tax.propTypes = {
   setTax: PropTypes.func.isRequired,
   taxMethod: PropTypes.string.isRequired,
   setTaxMethod: PropTypes.func.isRequired,
+  taxDistribution: PropTypes.string.isRequired,
+  setTaxDistribution: PropTypes.func.isRequired,
 };
 
 export default Tax;

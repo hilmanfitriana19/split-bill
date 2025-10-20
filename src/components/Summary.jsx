@@ -1,7 +1,25 @@
 import PropTypes from 'prop-types';
 import { Save } from 'react-feather';
 
-const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, otherCost, billDate, excludeNoOrder, taxMethod, selectedRestaurant, restaurants, saveOrderToHistory }) => {
+const Summary = ({ 
+  people, 
+  menuItems, 
+  orders, 
+  shippingCost, 
+  tax, 
+  discount, 
+  otherCost, 
+  billDate, 
+  excludeNoOrder, 
+  taxMethod, 
+  shippingDistribution,
+  taxDistribution,
+  discountDistribution,
+  otherCostDistribution,
+  selectedRestaurant, 
+  restaurants, 
+  saveOrderToHistory 
+}) => {
   // Format currency in IDR
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', { 
@@ -65,7 +83,7 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
 
   // Calculate individual discounts for each person
   const calculatePersonDiscounts = (rawAmounts, totalDiscount) => {
-    if (totalDiscount <= 0 || subtotal <= 0) {
+    if (totalDiscount <= 0) {
       return filteredPeople.reduce((acc, person) => {
         acc[person.id] = 0;
         return acc;
@@ -74,31 +92,90 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
     
     const personDiscounts = {};
     
-    // Calculate discount proportion for each person
-    Object.keys(rawAmounts).forEach(personId => {
-      const personRatio = rawAmounts[personId] / subtotal;
-      personDiscounts[personId] = personRatio * totalDiscount;
-    });
+    if (discountDistribution === 'proportional' && subtotal > 0) {
+      // Calculate discount proportion for each person
+      Object.keys(rawAmounts).forEach(personId => {
+        const personRatio = rawAmounts[personId] / subtotal;
+        personDiscounts[personId] = personRatio * totalDiscount;
+      });
+    } else {
+      // Equal distribution
+      const perPersonDiscount = filteredPeople.length > 0 ? totalDiscount / filteredPeople.length : 0;
+      Object.keys(rawAmounts).forEach(personId => {
+        personDiscounts[personId] = perPersonDiscount;
+      });
+    }
     
     return personDiscounts;
   };
   
-  // Get individual shipping, tax, and other costs
-  const perPersonShipping = filteredPeople.length > 0 ? shippingCost / filteredPeople.length : 0;
-  const perPersonTax = filteredPeople.length > 0 ? taxAmount / filteredPeople.length : 0;
-  const perPersonOther = filteredPeople.length > 0 ? totalOtherCost / filteredPeople.length : 0;
-  const personShippingCosts = filteredPeople.reduce((acc, person) => {
-    acc[person.id] = perPersonShipping;
-    return acc;
-  }, {});
-  const personTaxCosts = filteredPeople.reduce((acc, person) => {
-    acc[person.id] = perPersonTax;
-    return acc;
-  }, {});
-  const personOtherCosts = filteredPeople.reduce((acc, person) => {
-    acc[person.id] = perPersonOther;
-    return acc;
-  }, {});
+  // Calculate individual shipping costs for each person
+  const calculatePersonShippingCosts = (rawAmounts) => {
+    const personShippingCosts = {};
+    
+    if (shippingDistribution === 'proportional' && subtotal > 0) {
+      // Proportional distribution
+      Object.keys(rawAmounts).forEach(personId => {
+        const personRatio = rawAmounts[personId] / subtotal;
+        personShippingCosts[personId] = personRatio * shippingCost;
+      });
+    } else {
+      // Equal distribution
+      const perPersonShipping = filteredPeople.length > 0 ? shippingCost / filteredPeople.length : 0;
+      Object.keys(rawAmounts).forEach(personId => {
+        personShippingCosts[personId] = perPersonShipping;
+      });
+    }
+    
+    return personShippingCosts;
+  };
+  
+  // Calculate individual tax costs for each person
+  const calculatePersonTaxCosts = (rawAmounts) => {
+    const personTaxCosts = {};
+    
+    if (taxDistribution === 'proportional' && subtotal > 0) {
+      // Proportional distribution
+      Object.keys(rawAmounts).forEach(personId => {
+        const personRatio = rawAmounts[personId] / subtotal;
+        personTaxCosts[personId] = personRatio * taxAmount;
+      });
+    } else {
+      // Equal distribution
+      const perPersonTax = filteredPeople.length > 0 ? taxAmount / filteredPeople.length : 0;
+      Object.keys(rawAmounts).forEach(personId => {
+        personTaxCosts[personId] = perPersonTax;
+      });
+    }
+    
+    return personTaxCosts;
+  };
+  
+  // Calculate individual other costs for each person
+  const calculatePersonOtherCosts = (rawAmounts) => {
+    const personOtherCosts = {};
+    
+    if (otherCostDistribution === 'proportional' && subtotal > 0) {
+      // Proportional distribution
+      Object.keys(rawAmounts).forEach(personId => {
+        const personRatio = rawAmounts[personId] / subtotal;
+        personOtherCosts[personId] = personRatio * totalOtherCost;
+      });
+    } else {
+      // Equal distribution
+      const perPersonOther = filteredPeople.length > 0 ? totalOtherCost / filteredPeople.length : 0;
+      Object.keys(rawAmounts).forEach(personId => {
+        personOtherCosts[personId] = perPersonOther;
+      });
+    }
+    
+    return personOtherCosts;
+  };
+  
+  // Get individual costs using the new calculation methods
+  const personShippingCosts = calculatePersonShippingCosts(rawAmounts);
+  const personTaxCosts = calculatePersonTaxCosts(rawAmounts);
+  const personOtherCosts = calculatePersonOtherCosts(rawAmounts);
 
   // Calculate all cost components
   const personDiscounts = calculatePersonDiscounts(rawAmounts, discount);
@@ -223,6 +300,48 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
               </tr>
             </tbody>
           </table>
+          
+          {/* Distribution Methods Information */}
+          <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: 'var(--bg-subtle, #f8fafc)', borderRadius: 'var(--radius-md, 8px)', border: '1px solid var(--border, #e2e8f0)' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', fontSize: '0.9rem', fontWeight: 600, color: 'black' }}>Distribution Methods</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
+              {discount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', backgroundColor: 'white', borderRadius: 'var(--radius-sm, 6px)', border: '1px solid var(--border-light, #f1f5f9)' }}>
+                  <span style={{ color: 'black', fontWeight: 500 }}>Discount:</span>
+                  <span style={{ fontWeight: 600, color: 'black' }}>
+                    {discountDistribution === 'proportional' ? '📊 Proportional' : '⚖️ Equal'}
+                  </span>
+                </div>
+              )}
+              {taxAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', backgroundColor: 'white', borderRadius: 'var(--radius-sm, 6px)', border: '1px solid var(--border-light, #f1f5f9)' }}>
+                  <span style={{ color: 'black', fontWeight: 500 }}>Tax:</span>
+                  <span style={{ fontWeight: 600, color: 'black' }}>
+                    {taxDistribution === 'proportional' ? '📊 Proportional' : '⚖️ Equal'}
+                  </span>
+                </div>
+              )}
+              {shippingCost > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', backgroundColor: 'white', borderRadius: 'var(--radius-sm, 6px)', border: '1px solid var(--border-light, #f1f5f9)' }}>
+                  <span style={{ color: 'black', fontWeight: 500 }}>Shipping:</span>
+                  <span style={{ fontWeight: 600, color: 'black' }}>
+                    {shippingDistribution === 'proportional' ? '📊 Proportional' : '⚖️ Equal'}
+                  </span>
+                </div>
+              )}
+              {totalOtherCost > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', backgroundColor: 'white', borderRadius: 'var(--radius-sm, 6px)', border: '1px solid var(--border-light, #f1f5f9)' }}>
+                  <span style={{ color: 'black', fontWeight: 500 }}>Other Costs:</span>
+                  <span style={{ fontWeight: 600, color: 'black' }}>
+                    {otherCostDistribution === 'proportional' ? '📊 Proportional' : '⚖️ Equal'}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: 'black', fontStyle: 'italic', textAlign: 'center', padding: '0.5rem', backgroundColor: 'white', borderRadius: 'var(--radius-sm, 6px)' }}>
+              📊 Proportional = Based on order value • ⚖️ Equal = Split evenly
+            </div>
+          </div>
         </div>
 
         <h3 style={{ marginTop: '2em', marginBottom: '0.5em', color: 'var(--primary)', fontWeight: 700 }}>Individual Breakdown</h3>
@@ -275,6 +394,45 @@ const Summary = ({ people, menuItems, orders, shippingCost, tax, discount, other
 
         {filteredPeople.length === 0 && (
           <p className="empty-message">Add people to see the breakdown</p>
+        )}
+
+        {/* Distribution Methods for Mobile */}
+        {filteredPeople.length > 0 && (
+          <div className="distribution-info-mobile" style={{ 
+            display: 'none', 
+            marginTop: '1rem', 
+            padding: '0.75rem', 
+            backgroundColor: 'var(--bg-subtle, #f8fafc)', 
+            borderRadius: 'var(--radius-md, 8px)', 
+            border: '1px solid var(--border, #e2e8f0)' 
+          }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', fontWeight: 600, color: 'black' }}>Distribution Methods</h4>
+            <div style={{ fontSize: '0.8rem', lineHeight: '1.4', color: 'black' }}>
+              {discount > 0 && (
+                <div style={{ marginBottom: '0.25rem' }}>
+                  <strong>Discount:</strong> {discountDistribution === 'proportional' ? '📊 Proportional' : '⚖️ Equal'}
+                </div>
+              )}
+              {taxAmount > 0 && (
+                <div style={{ marginBottom: '0.25rem' }}>
+                  <strong>Tax:</strong> {taxDistribution === 'proportional' ? '📊 Proportional' : '⚖️ Equal'}
+                </div>
+              )}
+              {shippingCost > 0 && (
+                <div style={{ marginBottom: '0.25rem' }}>
+                  <strong>Shipping:</strong> {shippingDistribution === 'proportional' ? '📊 Proportional' : '⚖️ Equal'}
+                </div>
+              )}
+              {totalOtherCost > 0 && (
+                <div style={{ marginBottom: '0.25rem' }}>
+                  <strong>Other Costs:</strong> {otherCostDistribution === 'proportional' ? '📊 Proportional' : '⚖️ Equal'}
+                </div>
+              )}
+              <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', color: 'black', fontStyle: 'italic' }}>
+                📊 = Based on order value • ⚖️ = Split evenly
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Mobile: per-person card view (visible only at <=1000px via CSS) */}
@@ -339,6 +497,10 @@ Summary.propTypes = {
   excludeNoOrder: PropTypes.bool,
   billDate: PropTypes.string.isRequired,
   taxMethod: PropTypes.string,
+  shippingDistribution: PropTypes.string.isRequired,
+  taxDistribution: PropTypes.string.isRequired,
+  discountDistribution: PropTypes.string.isRequired,
+  otherCostDistribution: PropTypes.string.isRequired,
   selectedRestaurant: PropTypes.string,
   restaurants: PropTypes.arrayOf(
     PropTypes.shape({

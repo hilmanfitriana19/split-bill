@@ -1,7 +1,15 @@
-import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const AdditionalCosts = ({ shippingCost, otherCost, setShippingCost, setOtherCost }) => {
+const AdditionalCosts = ({ 
+  shippingCost, 
+  otherCost, 
+  setShippingCost, 
+  setOtherCost,
+  shippingDistribution,
+  setShippingDistribution,
+  otherCostDistribution,
+  setOtherCostDistribution
+}) => {
   // Update shipping cost directly when input changes
   const handleShippingChange = (valueString) => {
     const value = parseFloat(valueString) || 0;
@@ -21,7 +29,30 @@ const AdditionalCosts = ({ shippingCost, otherCost, setShippingCost, setOtherCos
         <div className="additional-costs-grid">
           <div className="additional-costs-group">
             <label htmlFor="shipping-cost" className="additional-costs-label">Shipping Cost</label>
-            <span className="additional-costs-desc">Shipping is divided equally among all people</span>
+            <div className="distribution-options" style={{ marginBottom: '0.75rem' }}>
+              <div className="radio-group">
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="shipping-distribution"
+                    value="equal"
+                    checked={shippingDistribution === 'equal'}
+                    onChange={(e) => setShippingDistribution(e.target.value)}
+                  />
+                  <span>Split equally among all people</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="shipping-distribution"
+                    value="proportional"
+                    checked={shippingDistribution === 'proportional'}
+                    onChange={(e) => setShippingDistribution(e.target.value)}
+                  />
+                  <span>Split proportionally based on order value</span>
+                </label>
+              </div>
+            </div>
             <div className="input-currency-row">
               <span className="input-currency-prefix">Rp</span>
               <input
@@ -38,7 +69,30 @@ const AdditionalCosts = ({ shippingCost, otherCost, setShippingCost, setOtherCos
           </div>
           <div className="additional-costs-group">
             <label htmlFor="other-cost" className="additional-costs-label">Other Costs</label>
-            <span className="additional-costs-desc">Any other additional cost, divided equally among all people</span>
+            <div className="distribution-options" style={{ marginBottom: '0.75rem' }}>
+              <div className="radio-group">
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="other-distribution"
+                    value="equal"
+                    checked={otherCostDistribution === 'equal'}
+                    onChange={(e) => setOtherCostDistribution(e.target.value)}
+                  />
+                  <span>Split equally among all people</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="other-distribution"
+                    value="proportional"
+                    checked={otherCostDistribution === 'proportional'}
+                    onChange={(e) => setOtherCostDistribution(e.target.value)}
+                  />
+                  <span>Split proportionally based on order value</span>
+                </label>
+              </div>
+            </div>
             <div className="input-currency-row">
               <span className="input-currency-prefix">Rp</span>
               <input
@@ -64,6 +118,10 @@ AdditionalCosts.propTypes = {
   otherCost: PropTypes.number.isRequired,
   setShippingCost: PropTypes.func.isRequired,
   setOtherCost: PropTypes.func.isRequired,
+  shippingDistribution: PropTypes.string.isRequired,
+  setShippingDistribution: PropTypes.func.isRequired,
+  otherCostDistribution: PropTypes.string.isRequired,
+  setOtherCostDistribution: PropTypes.func.isRequired,
 };
 
 export default AdditionalCosts;
